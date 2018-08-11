@@ -51,7 +51,7 @@ input, textarea{
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background: url('../images/background.png');
+	background: url('../images/background.jpg');
 }
 
 .login-form{
@@ -60,10 +60,12 @@ input, textarea{
 	justify-content: center;
   flex-direction: column;
   h2{
+		visibility: hidden;
 		color: seagreen;
     font-size: $height;
   }
 	input{
+		border-radius: 8px;
 		color: #333333;
     padding: 0 10px;
     border: 1px solid rgb(205, 195, 252);
