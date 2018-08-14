@@ -1,17 +1,18 @@
 const io = require('./index.js').io
+const uuidv4 = require('uuid/v4')
 
-const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED, 
-		LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-		TYPING, PRIVATE_MESSAGE, NEW_CHAT_USER  } = require('../Events')
+const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED,
+	LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
+	TYPING, PRIVATE_MESSAGE, NEW_CHAT_USER } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 
-let connectedUsers = { }
+let connectedUsers = {}
 
-let communityChat = createChat({ isCommunity:true })
+let communityChat = createChat({ isCommunity: true })
 
-module.exports = function(socket){
-					
+module.exports = function (socket) {
+
 	// console.log('\x1bc'); //clears console
 	console.log("Socket Id:" + socket.id);
 
@@ -20,16 +21,31 @@ module.exports = function(socket){
 	let sendTypingFromUser;
 
 	//Verify Username
-	socket.on(VERIFY_USER, (nickname, callback)=>{
-		if(isUser(connectedUsers, nickname)){
-			callback({ isUser:true, user:null })
-		}else{
-			callback({ isUser:false, user:createUser({name:nickname, socketId:socket.id})})
-		}
+	socket.on(VERIFY_USER, (nickName, number, callback) => {
+		const accountSid = 'AC9a04c0902b0032beed825c620785f7e5';
+		const authToken = '5ac98e6db50bb0c902f23dc044c276d4';
+		const client = require('twilio')(accountSid, authToken);
+		let otp = uuidv4();
+		console.log({ otp })
+		client.messages
+			.create({
+				body: otp.slice(0, 4),
+				from: '+19376967696',
+				to: number
+			})
+			.then(message => console.log(message.sid))
+			.done();
+		callback({ otp: otp, user: createUser({ name: nickName, number: number, socketId: socket.id, otp: otp.slice(0, 4) }) })
+
+		// if(isUser(connectedUsers, number)){
+		// 	callback({ isUser:true, user:null })
+		// }else{
+		// 	callback({ isUser:false, user:createUser({name:number, socketId:socket.id})})
+		// }
 	})
 
 	//User Connects with username
-	socket.on(USER_CONNECTED, (user)=>{
+	socket.on(USER_CONNECTED, (user) => {
 		user.socketId = socket.id
 		connectedUsers = addUser(connectedUsers, user)
 		socket.user = user
@@ -41,10 +57,10 @@ module.exports = function(socket){
 		console.log(connectedUsers);
 
 	})
-	
+
 	//User disconnects
-	socket.on('disconnect', ()=>{
-		if("user" in socket){
+	socket.on('disconnect', () => {
+		if ("user" in socket) {
 			connectedUsers = removeUser(connectedUsers, socket.user.name)
 
 			io.emit(USER_DISCONNECTED, connectedUsers)
@@ -54,7 +70,7 @@ module.exports = function(socket){
 
 
 	//User logsout
-	socket.on(LOGOUT, ()=>{
+	socket.on(LOGOUT, () => {
 		connectedUsers = removeUser(connectedUsers, socket.user.name)
 		io.emit(USER_DISCONNECTED, connectedUsers)
 		console.log("Disconnect", connectedUsers);
@@ -62,34 +78,34 @@ module.exports = function(socket){
 	})
 
 	//Get Community Chat
-	socket.on(COMMUNITY_CHAT, (callback)=>{
+	socket.on(COMMUNITY_CHAT, (callback) => {
 		callback(communityChat)
 	})
 
-	socket.on(MESSAGE_SENT, ({chatId, message})=>{
+	socket.on(MESSAGE_SENT, ({ chatId, message }) => {
 		sendMessageToChatFromUser(chatId, message)
 	})
 
-	socket.on(TYPING, ({chatId, isTyping})=>{
+	socket.on(TYPING, ({ chatId, isTyping }) => {
 		sendTypingFromUser(chatId, isTyping)
 	})
 
-	socket.on(PRIVATE_MESSAGE, ({reciever, sender, activeChat})=>{
-		if(reciever in connectedUsers){
+	socket.on(PRIVATE_MESSAGE, ({ reciever, sender, activeChat }) => {
+		if (reciever in connectedUsers) {
 			const recieverSocket = connectedUsers[reciever].socketId
-			if(activeChat === null || activeChat.id === communityChat.id){
-				const newChat = createChat({ name:`${reciever}&${sender}`, users:[reciever, sender] })
+			if (activeChat === null || activeChat.id === communityChat.id) {
+				const newChat = createChat({ name: `${reciever}&${sender}`, users: [reciever, sender] })
 				socket.to(recieverSocket).emit(PRIVATE_MESSAGE, newChat)
 				socket.emit(PRIVATE_MESSAGE, newChat)
-			}else{
-				if(!(reciever in activeChat.users)){
+			} else {
+				if (!(reciever in activeChat.users)) {
 					activeChat.users
-										.filter( user => user in connectedUsers)
-										.map( user => connectedUsers[user] )
-										.map( user => {
-												socket.to(user.socketId).emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
-										} )
-										socket.emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever } )
+						.filter(user => user in connectedUsers)
+						.map(user => connectedUsers[user])
+						.map(user => {
+							socket.to(user.socketId).emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
+						})
+					socket.emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
 				}
 				socket.to(recieverSocket).emit(PRIVATE_MESSAGE, activeChat)
 			}
@@ -103,9 +119,9 @@ module.exports = function(socket){
 * @param sender {string} username of sender
 * @return function(chatId, message)
 */
-function sendTypingToChat(user){
-	return (chatId, isTyping)=>{
-		io.emit(`${TYPING}-${chatId}`, {user, isTyping})
+function sendTypingToChat(user) {
+	return (chatId, isTyping) => {
+		io.emit(`${TYPING}-${chatId}`, { user, isTyping })
 	}
 }
 
@@ -115,9 +131,9 @@ function sendTypingToChat(user){
 * @param sender {string} username of sender
 * @return function(chatId, message)
 */
-function sendMessageToChat(sender){
-	return (chatId, message)=>{
-		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({message, sender}))
+function sendMessageToChat(sender) {
+	return (chatId, message) => {
+		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({ message, sender }))
 	}
 }
 
@@ -127,7 +143,7 @@ function sendMessageToChat(sender){
 * @param user {User} the user to added to the list.
 * @return userList {Object} Object with key value pairs of Users
 */
-function addUser(userList, user){
+function addUser(userList, user) {
 	let newList = Object.assign({}, userList)
 	newList[user.name] = user
 	return newList
@@ -139,7 +155,7 @@ function addUser(userList, user){
 * @param username {string} name of user to be removed
 * @return userList {Object} Object with key value pairs of Users
 */
-function removeUser(userList, username){
+function removeUser(userList, username) {
 	let newList = Object.assign({}, userList)
 	delete newList[username]
 	return newList
@@ -151,6 +167,6 @@ function removeUser(userList, username){
 * @param username {String}
 * @return userList {Object} Object with key value pairs of Users
 */
-function isUser(userList, username){
-  	return username in userList
+function isUser(userList, username) {
+	return username in userList
 }

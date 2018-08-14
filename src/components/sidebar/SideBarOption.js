@@ -20,7 +20,12 @@ export default class SideBarOption extends PureComponent {
                 className={`user ${active ? 'active':''}`}
                 onClick={onClick}
                 >
-                <div className="user-photo">{name[0].toUpperCase()}</div>
+                {
+                    name[0]?<div className="user-photo">{name[0].toUpperCase()}</div>
+                    :
+                    <div className="user-photo">{name[0]}</div>
+                }
+                
                 <div className="user-info">
                     <div className="name">{name}</div>
                     <div className="last-message">{lastMessage}</div>

@@ -1,4 +1,4 @@
-const uuidv4 = require('uuid/v4')
+const uuidv4 = require("uuid/v4");
 
 /*
 *	createUser
@@ -8,14 +8,18 @@ const uuidv4 = require('uuid/v4')
 *	@param {object} 
 *		name {string}
 */
-const createUser = ({name = "", socketId = null } = {})=>(
-	{
-		id:uuidv4(),
-		name,
-		socketId
-		
-	}
-)
+const createUser = ({
+  name = "",
+  number = "",
+  socketId = null,
+  otp = ""
+} = {}) => ({
+  id: uuidv4(),
+  name,
+  number,
+  socketId,
+  otp
+});
 
 /*
 *	createMessage
@@ -28,15 +32,12 @@ const createUser = ({name = "", socketId = null } = {})=>(
 *		message {string}
 *		sender {string}
 */
-const createMessage = ({message = "", sender = ""} = { })=>(
-		{
-			id:uuidv4(),
-			time:getTime(new Date()),
-			message,
-			sender	
-		}
-
-	)
+const createMessage = ({ message = "", sender = "" } = {}) => ({
+  id: uuidv4(),
+  time: getTime(new Date()),
+  message,
+  sender
+});
 
 /*
 *	createChat
@@ -53,16 +54,19 @@ const createMessage = ({message = "", sender = ""} = { })=>(
 *		users {Array.string}
 * 
 */
-const createChat = ({messages = [], name = "Community", users = [], isCommunity = false} = {})=>(
-	{
-		id:uuidv4(),
-		name: isCommunity ? name : createChatNameFromUsers(users),
-		messages,
-		users,
-		typingUsers:[],
-		isCommunity
-	}
-)
+const createChat = ({
+  messages = [],
+  name = "Community",
+  users = [],
+  isCommunity = false
+} = {}) => ({
+  id: uuidv4(),
+  name: isCommunity ? name : createChatNameFromUsers(users),
+  messages,
+  users,
+  typingUsers: [],
+  isCommunity
+});
 
 /*
 * createChatNameFromUsers
@@ -71,21 +75,20 @@ const createChat = ({messages = [], name = "Community", users = [], isCommunity 
 * @return {string} users names concatenated by a '&' or "Empty Chat" if no users
 */
 const createChatNameFromUsers = (users, excludedUser = "") => {
-	return users.filter(u => u !== excludedUser).join(' & ') || "Empty Chat"
-}
+  return users.filter(u => u !== excludedUser).join(" & ") || "Empty Chat";
+};
 
 /*
 *	@param date {Date}
 *	@return a string represented in 24hr time i.e. '11:30', '19:30'
 */
-const getTime = (date)=>{
-	return `${date.getHours()}:${("0"+date.getMinutes()).slice(-2)}`
-}
+const getTime = date => {
+  return `${date.getHours()}:${("0" + date.getMinutes()).slice(-2)}`;
+};
 
 module.exports = {
-	createMessage,
-	createChat,
-	createUser,
-	createChatNameFromUsers
-}
-
+  createMessage,
+  createChat,
+  createUser,
+  createChatNameFromUsers
+};
