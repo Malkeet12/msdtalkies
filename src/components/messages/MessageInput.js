@@ -13,7 +13,7 @@ export default class MessageInput extends Component {
 
 	}
 
-	componentDidMount=()=>{
+	componentDidMount = () => {
 		let emojiButton = document.getElementById("emoji-picker");
 		emojiButton.click();
 		this.setState({ showEmojiPicker: false })
@@ -83,7 +83,7 @@ export default class MessageInput extends Component {
 		const { message } = this.state
 		if (document.getElementById('message-input')) {
 			document.getElementById('message-input').onkeydown = e => {
-				if (e.keyCode === 13) {
+				if (e.keyCode === 13 && this.state.message) {
 					this.setState({ showEmojiPicker: false })
 					this.sendMessage()
 					this.setState({ message: "" })
@@ -95,7 +95,7 @@ export default class MessageInput extends Component {
 				<form
 					onSubmit={this.handleSubmit}
 					className="message-form">
-					<div className="open-emoji-picker" id="emoji-picker" onClick={this.toggleEmojiPicker}>😁</div>
+					<div className="open-emoji-picker" id="emoji-picker" onClick={this.toggleEmojiPicker}><span>😁</span></div>
 					<input
 						id="message"
 						ref={"messageinput"}

@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
-import FAMenu from 'react-icons/lib/fa/list-ul'
-import FAVideo from 'react-icons/lib/fa/video-camera'
-import FAUserPlus from 'react-icons/lib/fa/user-plus'
-import MdEllipsisMenu from 'react-icons/lib/md/keyboard-control'
+// import FAMenu from 'react-icons/lib/fa/list-ul'
+// import FAVideo from 'react-icons/lib/fa/video-camera'
+// import FAUserPlus from 'react-icons/lib/fa/user-plus'
+// import MdEllipsisMenu from 'react-icons/lib/md/keyboard-control'
 
 //
 //export default function ({ name, numberOfUsers }) {
 export default class ChatHeading extends Component {
-	constructor(props) {
-		super(props)
-	}
+	// constructor(props) {
+	// 	super(props)
+	// }
 	render() {
 		const { name } = this.props
 		return (

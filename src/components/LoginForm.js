@@ -32,7 +32,7 @@ export default class LoginForm extends Component {
 	}
 
 	handleChange = (e) => {
-		if(e.target.value!=''){
+		if(e.target.value!==''){
 			this.setState({disabled:false})
 		}else{
 			this.setState({disabled:true})
