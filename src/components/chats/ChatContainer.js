@@ -122,7 +122,24 @@ export default class ChatContainer extends Component {
 			this.setState({chats:newChats})
 		}
 	}
-
+	toggleMenu = () => {
+		if (document.getElementById('side-bar').offsetWidth === 0) {
+			if(window.innerWidth>550){
+				document.getElementById('side-bar').style.width = '33.75%';
+				document.getElementById('chat-room-container').style.width = '67.25%';
+			}else{
+				document.getElementById('side-bar').style.width = '50%';
+				document.getElementById('chat-room-container').style.width = '50%';
+			}
+			
+			document.getElementById('menuHeading').style.visibility='hidden';
+			
+		} else {
+			document.getElementById('side-bar').style.width = 0;
+			document.getElementById('menuHeading').style.visibility='visible';
+			document.getElementById('chat-room-container').style.width = '100%';
+		}
+	}
 	/*
 	*	Updates the typing of chat with id passed in.
 	*	@param chatId {number}
@@ -175,7 +192,7 @@ export default class ChatContainer extends Component {
 		const { user, logout } = this.props
 		const { chats, activeChat, users } = this.state
 		return (
-			<div className="container">
+			<div className="chat-container">
 				<SideBar
 					logout={logout}
 					chats={chats}
@@ -184,13 +201,14 @@ export default class ChatContainer extends Component {
 					activeChat={activeChat}
 					setActiveChat={this.setActiveChat}
 					onSendPrivateMessage={this.sendOpenPrivateMessage}
+					handleClick={this.toggleMenu}
 					/>
-				<div className="chat-room-container">
+				<div id="chat-room-container" className="chat-room-container">
 					{
 						activeChat !== null ? (
 
 							<div className="chat-room">
-								<ChatHeading name={activeChat.name} />
+								<ChatHeading name={activeChat.name} handleClick={this.toggleMenu}/>
 								<Messages 
 									messages={activeChat.messages}
 									user={user}

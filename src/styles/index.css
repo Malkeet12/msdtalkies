@@ -4,9 +4,11 @@ html, body, #root {
   font-family: sans-serif;
   height: 100%;
 }
+
 input, textarea {
   font-family: Arial;
 }
+
 .login {
   width: 100%;
   height: 100%;
@@ -15,6 +17,7 @@ input, textarea {
   align-items: center;
   background: #2e6da4;
 }
+
 .login-form {
   background: #fff;
   width: 42%;
@@ -24,16 +27,18 @@ input, textarea {
   flex-direction: column;
 }
 .login-form h2 {
-  color: seagreen;
-  font-size: 5vw;
+  color: cadetblue;
+  font-size: 2vw;
+  left: 18px;
+  position: relative;
 }
 .login-form input {
   width: 80%;
   position: relative;
   border: solid 1px #4267b2;
-  margin: 14px;
+  margin: 0 14px 14px 14px;
   border-radius: 8px;
-  color: #333;
+  color: #333333;
   padding: 0 10px;
   border: 1px solid #cdc3fc;
   height: 40px;
@@ -50,7 +55,8 @@ input, textarea {
   padding: 5px 10px;
   color: #c92c43;
 }
-.container {
+
+.chat-container {
   color: #cac8ee;
   display: flex;
   flex-direction: row;
@@ -58,9 +64,10 @@ input, textarea {
   height: 100%;
   width: 100%;
 }
+
 #side-bar {
   box-sizing: border-box;
-  width: 33.75%;
+  width: 50%;
   height: 100%;
   display: grid;
   justify-content: stretch;
@@ -152,10 +159,12 @@ input, textarea {
 #side-bar .search input:focus {
   outline: none;
 }
-#side-bar .search input::placeholder {
-  color: #cac8ee;
+
+input::placeholder {
+  color: #b3b2ca;
   opacity: 0.6;
 }
+
 #side-bar .search .plus {
   display: inline-block;
   position: relative;
@@ -164,7 +173,7 @@ input, textarea {
   height: 13px;
 }
 #side-bar .search .plus::after, #side-bar .search .plus::before {
-  content: '';
+  content: "";
   position: absolute;
   background: #b3b2ca;
 }
@@ -204,6 +213,9 @@ input, textarea {
   justify-content: flex-start;
   padding: 0 16px;
 }
+#side-bar .users .user.active {
+  background-color: darkgray;
+}
 #side-bar .users .user:hover {
   background: darkgray;
 }
@@ -242,11 +254,12 @@ input, textarea {
   justify-content: center;
   font-size: 2em;
 }
+
 .chat-header {
   background: #4267b2;
   border-bottom: 1px solid #29487d;
   color: #fff;
-  box-shadow: 0px 6px 5px -2px rgba(225, 225, 225, .7);
+  box-shadow: 0px 6px 5px -2px rgba(225, 225, 225, 0.7);
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
@@ -275,18 +288,24 @@ input, textarea {
 .chat-header .options svg {
   cursor: pointer;
 }
+
 .chat-room-container {
   height: 100%;
-  width: 76.25%;
+  width: 50%;
 }
-@media screen and (max-width: 510px) {
+
+@media screen and (min-width: 600px) {
   #side-bar {
-    width: 50%;
+    width: 32.75%;
+  }
+
+  .chat-room-container {
+    width: 67.25%;
   }
 }
 .chat-room {
   display: grid;
-  grid-template: 8vh 1fr 8vh / 100%;
+  grid-template: 8vh 1fr 8vh/100%;
   height: 100%;
   width: 100%;
 }
@@ -295,6 +314,7 @@ input, textarea {
   justify-content: center;
   font-size: 2em;
 }
+
 .thread-container {
   display: grid;
   flex-grow: 1;
@@ -321,11 +341,12 @@ input, textarea {
   color: #b3b2ca;
   background: #fff;
 }
+
 .message-container {
   display: flex;
   justify-content: flex-start;
   min-height: 50px;
-  margin: 10px 15px;
+  margin: 2px 15px;
   animation: 0.65s ease-out 0s show;
 }
 .message-container .time {
@@ -338,7 +359,6 @@ input, textarea {
 }
 .message-container .name {
   font-size: 0.65em;
-  margin-top: 5px;
   text-align: right;
 }
 .message-container .message {
@@ -346,18 +366,15 @@ input, textarea {
   border-radius: 5px;
   border-top-left-radius: 0;
   box-sizing: border-box;
-  color: #b3b2ca;
+  color: #408db9;
+  font-size: 17px;
   height: 100%;
   padding: 10px 15px;
   position: relative;
 }
-@keyframes show {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+.message-container.false .message{
+  opacity: 0.6;
+  padding: 10px 15px 0 15px;
 }
 .message-container .message::before {
   border-bottom-color: transparent;
@@ -366,7 +383,7 @@ input, textarea {
   border-style: solid;
   border-top-color: #fff;
   border-width: 4px;
-  content: '';
+  content: "";
   height: 0;
   left: -7px;
   position: absolute;
@@ -401,26 +418,38 @@ input, textarea {
   left: auto;
   right: -7px;
 }
+
+@keyframes show {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 .typing-user {
   text-align: right;
   margin: 10px 15px;
 }
+
 .message-input {
   background: white;
   color: #484d79;
   box-sizing: border-box;
 }
 .message-input .message-form {
+  position: relative;
   height: 100%;
   width: 100%;
   display: flex;
+  box-shadow: inset 0 1px 8px rgba(0,0,0,.075);
   justify-content: space-between;
 }
 .message-input .message-form .form-control {
+  box-shadow: inset 0 1px 8px rgba(0,0,0,.075);
   resize: none;
-  padding-left: 15px;
+  flex: 1;
   box-sizing: border-box;
-  width: 80%;
   height: 100%;
   border: none;
   font-size: 16px;
@@ -441,6 +470,8 @@ input, textarea {
 }
 .message-input .message-form .send {
   width: 20%;
+  min-width: 58px;
+  border-top-left-radius: 7px;
   box-sizing: border-box;
   font-size: 1.25em;
   text-align: center;
@@ -454,8 +485,10 @@ input, textarea {
   opacity: 0.2;
   background: #4267b2;
 }
+
 .submit-btn {
   margin-left: 14px;
+  outline: none;
   color: #fff;
   background-color: #337ab7;
   border-color: #2e6da4;
@@ -464,7 +497,7 @@ input, textarea {
   margin-bottom: 0;
   font-size: 14px;
   font-weight: 400;
-  line-height: 1.42857;
+  line-height: 1.42857143;
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
@@ -478,4 +511,47 @@ input, textarea {
   background-image: none;
   border: 1px solid transparent;
   border-radius: 4px;
+}
+
+.menu {
+  cursor: pointer;
+}
+
+.menuHeading {
+  cursor: pointer;
+  visibility: visible;
+  position: relative;
+  content: "\e079";
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  visibility: hidden;
+}
+.menuHeading:before {
+  content: "\e079";
+}
+.emoji-picker {
+  position: absolute;
+  bottom: 64px;
+  width: 100%;
+}
+.emoji-picker .emoji {
+  padding: 25px;
+  background-size: 32px;
+}
+
+.open-emoji-picker {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.open-emoji-picker:hover{
+  background: lightblue;
 }
