@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import If from '../common/If'
+import face1 from '../../images/face1.jpeg'
 // import FAMenu from 'react-icons/lib/fa/list-ul'
 // import FAVideo from 'react-icons/lib/fa/video-camera'
 // import FAUserPlus from 'react-icons/lib/fa/user-plus'
@@ -13,11 +15,12 @@ export default class ChatHeading extends Component {
 	render() {
 		const { name } = this.props
 		return (
-			<div className="chat-header">
+			<div id="chat-header" className="chat-header">
 
 				<div id="menuHeading" onClick={() => { this.props.handleClick() }} className="menuHeading">
 				</div>
-				<div className="user-info">
+
+				<div className="user-info" id="user-info">
 					<div className="user-name">{name}</div>
 					<div className="status">
 						<div className="indicator"></div>

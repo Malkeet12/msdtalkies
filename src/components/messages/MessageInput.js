@@ -95,7 +95,7 @@ export default class MessageInput extends Component {
 				<form
 					onSubmit={this.handleSubmit}
 					className="message-form">
-					<div className="open-emoji-picker" id="emoji-picker" onClick={this.toggleEmojiPicker}><span>😁</span></div>
+					<div className="open-emoji-picker" id="emoji-picker" onClick={this.toggleEmojiPicker}><span>🤣</span></div>
 					<input
 						id="message"
 						ref={"messageinput"}

@@ -12,13 +12,15 @@ const createUser = ({
   name = "",
   number = "",
   socketId = null,
-  otp = ""
+  otp = "",
+  imgUrl = ""
 } = {}) => ({
   id: uuidv4(),
   name,
   number,
   socketId,
-  otp
+  otp,
+  imgUrl
 });
 
 /*
@@ -34,7 +36,7 @@ const createUser = ({
 */
 const createMessage = ({ message = "", sender = "" } = {}) => ({
   id: uuidv4(),
-  time: getTime(new Date()),
+  time: getTime(new Date(Date.now() - 19800000)),
   message,
   sender
 });
@@ -75,6 +77,7 @@ const createChat = ({
 * @return {string} users names concatenated by a '&' or "Empty Chat" if no users
 */
 const createChatNameFromUsers = (users, excludedUser = "") => {
+  console.log(users, excludedUser)
   return users.filter(u => u !== excludedUser).join(" & ") || "Empty Chat";
 };
 

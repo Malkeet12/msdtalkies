@@ -19,6 +19,7 @@ export default class LoginForm extends Component {
 		} else {
 			this.setError("")
 			this.props.setUser(user)
+			console.log({user})
 		}
 	}
 

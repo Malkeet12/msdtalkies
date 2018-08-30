@@ -31,7 +31,7 @@ export default class Messages extends Component {
 							return (
 								<div
 									key={mes.id}
-									className={`message-container ${mes.sender === user.name && 'right'}`}
+									className={`message-container ${mes.sender === user.name && 'right'} ${mes.sender !== user.name && 'left'}`}
 								>
 									<div className="time">{mes.time}</div>
 									<div className="data">

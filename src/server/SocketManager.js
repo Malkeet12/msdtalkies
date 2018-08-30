@@ -3,7 +3,7 @@ const uuidv4 = require('uuid/v4')
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED, 
 		LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-		TYPING, PRIVATE_MESSAGE, NEW_CHAT_USER  } = require('../Events')
+		TYPING, PRIVATE_MESSAGE, NEW_CHAT_USER,CHANGE_IMAGE  } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 
@@ -50,8 +50,12 @@ module.exports = function(socket){
 		if(isUser(connectedUsers, nickname)){
 			callback({ isUser:true, user:null })
 		}else{
-			callback({ isUser:false, user:createUser({name:nickname, socketId:socket.id})})
+			callback({ isUser:false, user:createUser({name:nickname,imgUrl:'', socketId:socket.id})})
 		}
+	})
+
+	socket.on(CHANGE_IMAGE, (userName,imgUrl, callback)=>{
+		console.log('changed')
 	})
 
 	//User Connects with username
@@ -93,14 +97,17 @@ module.exports = function(socket){
 	})
 
 	socket.on(MESSAGE_SENT, ({chatId, message})=>{
+		if(typeof sendMessageToChatFromUser=='function')
 		sendMessageToChatFromUser(chatId, message)
 	})
 
 	socket.on(TYPING, ({chatId, isTyping})=>{
+		if(typeof(sendTypingFromUser)=='function')
 		sendTypingFromUser(chatId, isTyping)
 	})
 
 	socket.on(PRIVATE_MESSAGE, ({reciever, sender, activeChat})=>{
+		console.log({reciever},{sender},{activeChat},{connectedUsers})
 		if(reciever in connectedUsers){
 			const recieverSocket = connectedUsers[reciever].socketId
 			if(activeChat === null || activeChat.id === communityChat.id){

@@ -25,7 +25,7 @@ export default class Layout extends Component {
 	*/
 	initSocket = () => {
 		const socket = io(socketUrl)
-
+		//const socket = io.connect()
 		socket.on('connect', () => {
 			console.log("Connected");
 		})
