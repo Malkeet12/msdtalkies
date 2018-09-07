@@ -1,84 +1,134 @@
-import React, { Component } from 'react';
-import { VERIFY_USER } from '../Events'
-
+import React, { Component } from "react";
+import { VERIFY_USER } from "../Events";
+import appLogo from '../images/app-logo.png'
 export default class LoginForm extends Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
 			nickname: "",
+			password: '',
 			error: "",
-			disabled: true
+			disabled: true,
+			showLoader: false,
+			showError: false
 		};
 	}
 
-	setUser = ({ user, isUser }) => {
-
-		if (isUser) {
-			this.setError("User name taken")
+	setUser = ({ user, isUser, error }) => {
+		if (error) {
+			this.setState({ showError: error });
 		} else {
-			this.setError("")
-			this.props.setUser(user)
-			console.log({user})
+			this.props.setUser(user);
+			console.log({ user });
 		}
-	}
-
-	handleSubmit = (e) => {
-		e.preventDefault()
-		if (this.state.nickname) {
-			const { socket } = this.props
-			const { nickname } = this.state
-			socket.emit(VERIFY_USER, nickname, this.setUser)
+		this.setState({ showLoader: false });
+		if (document.getElementById("login")) {
+			document.getElementById("login").classList.remove("blur-background");
 		}
-	}
+	};
 
-	handleChange = (e) => {
-		if(e.target.value!==''){
-			this.setState({disabled:false})
-		}else{
-			this.setState({disabled:true})
+	handleSubmit = e => {
+		e.preventDefault();
+		if (this.state.nickname && this.state.password) {
+			const { socket } = this.props;
+			const { nickname, password } = this.state;
+			socket.emit(VERIFY_USER, nickname, password, this.setUser);
+			this.setState({ showLoader: true });
+			document.getElementById("login").classList.add("blur-background");
 		}
-		this.setState({ nickname: e.target.value })
-	}
+	};
 
-	setError = (error) => {
-		this.setState({ error })
-	}
+	handleChange = e => {
+		this.setState({ nickname: e.target.value });
+	};
+
+	handlePwdChange = e => {
+		this.setState({ password: e.target.value });
+	};
+
+	setError = error => {
+		this.setState({ error });
+	};
 
 	render() {
-		const { nickname, error } = this.state
+		const { nickname, password, showError } = this.state;
 		return (
-			<div className="login">
-				<form onSubmit={this.handleSubmit} className="login-form" >
-
-					<label htmlFor="nickname">
-						<h2>User Name</h2>
-					</label>
+			<div className="login-container">
+				<section className="login-leftbar">
 					<div>
-						<input
-							ref={(input) => { this.textInput = input }}
-							type="text"
-							id="nickname"
-							autoComplete={'off'}
-							value={nickname}
-							onChange={this.handleChange}
-							placeholder={'John Doe'}
-						/>
-						<button style={{ background: this.state.disabled ? '#BDBDBD' : '' }} className="submit-btn">Submit</button>
+						<a href="/">
+							<img src={appLogo} alt="MSDTalkies Logo" className="styles-logo" />
+            </a>
+						<h1 className="styles-header">Log in</h1>
 					</div>
-					<div className="error">{error ? error : null}</div>
+					<p className="styles-description">
+						<span>
+							Having trouble signing in? {" "}
+              <a className="page-styles-link" href="/remind-usernames/">
+								Retrieve your username(s)
+              </a>{" "}
+							or{" "}
+              <a className="page-styles-link" href="/reset-password/">
+								reset your password.
+              </a>
+						</span>
+					</p>
+				</section>
+				<section id="login" className="login">
+					{this.state.showLoader ? (
+						<div className="loader-container" />
+					) : (
+							<form onSubmit={this.handleSubmit} className="login-form">
+								{showError ? <div className="error-block">{showError}</div> : ""}
 
-				</form>
+								<div className="input-container">
+								{/* <label className="form-label" for="nickname">What is your name?</label> */}
+									<input
+										ref={input => {
+											this.textInput = input;
+										}}
+										type="text"
+										id="nickname"
+										autoComplete={"off"}
+										value={nickname}
+										onChange={this.handleChange}
+										placeholder={"John Doe"}
+									/>
+								{/* <label className="form-label" for="password">What is your name?</label> */}
+									<input
+										ref={input => {
+											this.textInput = input;
+										}}
+										type="password"
+										id="password"
+										autoComplete={"off"}
+										value={password}
+										onChange={this.handlePwdChange}
+										placeholder={"********"}
+									/>
+
+								</div>
+								<div>
+									<button
+										className={this.state.nickname == "" || this.state.password == "" ? 'disabled-button' : "submit-btn"}
+									>
+										Submit
+                </button>
+								</div>
+							</form>
+						)}
+				</section>
+				<div className="styles-altText"><span>Don't have an MsdTalkies account yet? <a className="page-styles-link" href="/signup/">Sign up now!</a></span></div>
 			</div>
 		);
 	}
 }
 
-
 // for phone number verification
 
-// import React, { Component } from 'react';
-// import { VERIFY_USER } from '../Events'
+// import React, {Component} from 'react';
+// import {VERIFY_USER} from '../Events'
 // const uuidv4 = require('uuid/v4')
 // let loginFlag = false
 
