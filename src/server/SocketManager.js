@@ -3,7 +3,7 @@ const uuidv4 = require('uuid/v4')
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED,
 	LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-	TYPING, PRIVATE_MESSAGE, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
+	TYPING, PRIVATE_MESSAGE, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 let url = 'mongodb://msd:12malkeet@ds237192.mlab.com:37192/msdtalkies1'
@@ -48,38 +48,50 @@ module.exports = function (socket) {
 	// }
 	//})
 
-	//Verify Username
-	socket.on(VERIFY_USER, (nickname, pwd, callback) => {
+	socket.on(LOGIN_USER, (nickname, password, callback) => {
 		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
 
 			if (err) throw err;
 			var dbo = db.db("msdtalkies1");
-			var myobj = { name: "Company Inc", address: "Highway 37" };
-			var query = { name: nickname };
-			// dbo.collection("customers").findOne({name:"MSD"  }).then(function(res){
-			// 	console.log(res)
-			// })
-			// dbo.collection("customers").insertOne(myobj, function(err, res) {
-  //   if (err) throw err;
-  //   console.log("1 document inserted");
-  //   db.close();
-  // });
 			dbo.collection("customers").find({ 'name': nickname }).toArray(function (err, result) {
 				if (err) throw err;
-				console.log(result);
+				console.log(result)
 				let index = result.findIndex(item => item.name == nickname)
 				if (index == -1) {
-					callback({ isUser: true, user: null, error: 'Invalid username' })
+					callback({ isUser: true, user: null, message: { text: 'Invalid username', error: true } })
 				} else {
-					if (pwd == result[index].pwd) {
-						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id }) })
+					if (password == result[index].password) {
+						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id }), error: '' })
 					} else {
-						callback({ isUser: true, user: null, error: 'Invalid username / password pair' })
+						callback({ isUser: true, user: null, message: { text: 'Invalid username / password pair', error: true } })
 					}
 				}
-					db.close();
-				});
+				db.close();
+			});
+		})
+	})
+	//Verify Username
+	socket.on(VERIFY_USER, (nickname, email, password, callback) => {
+		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
 
+			if (err) throw err;
+			var dbo = db.db("msdtalkies1");
+			var myobj = { name: nickname, email: email, password: password };
+			dbo.collection("customers").find({ 'name': nickname }).toArray(function (err, result) {
+				if (err) throw err;
+				console.log(result)
+				let index = result.findIndex(item => item.name == nickname)
+				if (index !== -1) {
+					callback({ isUser: true, user: null, message: { text: `User name is already taken, try again or choose from : ${nickname}${uuidv4().slice(0, 2)}, ${nickname}${uuidv4().slice(0, 2)}, ${nickname}${uuidv4().slice(0, 2)}`, error: true } })
+				} else {
+					dbo.collection("customers").insertOne(myobj, function (err, res) {
+						if (err) throw err;
+						console.log("1 document inserted");
+						callback({ isUser: true, user: null, message: { text: 'Your account has been created successfully. Please log in.', success: true } })
+						db.close();
+					});
+				}
+			})
 		})
 	})
 	//callback({ isUser:true, user:null, error:`User name is already taken, try again or choose from : ${nickname}${uuidv4().slice(0,2)}, ${nickname}${uuidv4().slice(0,2)}, ${nickname}${uuidv4().slice(0,2)}` })
@@ -114,9 +126,12 @@ module.exports = function (socket) {
 
 	//User logsout
 	socket.on(LOGOUT, () => {
-		connectedUsers = removeUser(connectedUsers, socket.user.name)
-		io.emit(USER_DISCONNECTED, connectedUsers)
-		console.log("Disconnect", connectedUsers);
+		if (socket && socket.user) {
+			connectedUsers = removeUser(connectedUsers, socket.user.name)
+			io.emit(USER_DISCONNECTED, connectedUsers)
+			console.log("Disconnect", connectedUsers);
+		}
+
 
 	})
 

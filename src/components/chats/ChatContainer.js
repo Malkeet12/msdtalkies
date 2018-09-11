@@ -132,15 +132,18 @@ export default class ChatContainer extends Component {
 		console.log({ updatedArr })
 	}
 	toggleMenu = (showChat) => {
+		if (document.getElementsByClassName("introjs-tooltip")[0]) {
+			document.getElementsByClassName("introjs-tooltip")[0].style.display = 'none'
+		}
 		if (window.innerWidth < 600) {
 			if (showChat) {
 				document.getElementById('side-bar').style.width = 0;
 				document.getElementById('chat-room-container').style.width = '100%';
-				document.getElementById('side-bar').style.display='none';
+				document.getElementById('side-bar').style.display = 'none';
 			} else {
 				document.getElementById('side-bar').style.width = '100%'
 				document.getElementById('chat-room-container').style.width = 0;
-				document.getElementById('side-bar').style.display='grid';
+				document.getElementById('side-bar').style.display = 'grid';
 			}
 		}
 		// if (document.getElementById('side-bar').offsetWidth === 0) {
@@ -168,7 +171,7 @@ export default class ChatContainer extends Component {
 	*/
 	updateTypingInChat = (chatId) => {
 		return ({ isTyping, user }) => {
-			if (user !== this.props.user.name) {
+			if (this.props.user && user !== this.props.user.name) {
 
 				const { chats } = this.state
 
@@ -212,7 +215,7 @@ export default class ChatContainer extends Component {
 		this.setState({ activeChat })
 	}
 	render() {
-		const { user, logout,socket } = this.props
+		const { user, logout, socket } = this.props
 		const { chats, activeChat, users } = this.state
 		return (
 			<div className="chat-container">
@@ -225,7 +228,7 @@ export default class ChatContainer extends Component {
 					socket={socket}
 					setActiveChat={this.setActiveChat}
 					onSendPrivateMessage={this.sendOpenPrivateMessage}
-					handleClick={()=>this.toggleMenu(false)}
+					handleClick={() => this.toggleMenu(false)}
 					handleDeleteChat={this.revealDeleteOptions}
 				/>
 				<div id="chat-room-container" className="chat-room-container">

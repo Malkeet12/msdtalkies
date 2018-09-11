@@ -9,6 +9,7 @@ import MdEject from 'react-icons/lib/md/eject'
 import SideBarOption from './SideBarOption'
 import { last, get, differenceBy } from 'lodash'
 import { createChatNameFromUsers } from '../../Factories'
+import { Link } from "react-router-dom";
 import { PRIVATE_MESSAGE, CHANGE_IMAGE } from '../../Events'
 import ImageUploader from 'react-images-upload'
 
@@ -35,7 +36,8 @@ export default class SideBar extends Component {
 			activeSideBar: SideBar.type.CHATS,
 			showOverlay: 'hide',
 			file: '',
-			imagePreviewUrl: ''
+			imagePreviewUrl: '',
+			hideGuide:localStorage.getItem('hideGuide')
 		}
 		this.closeOverlay = this.closeOverlay.bind(this)
 		this.editImage = this.editImage.bind(this)
@@ -78,7 +80,7 @@ export default class SideBar extends Component {
 				imagePreviewUrl: reader.result
 			});
 			const { socket, user } = this.props
-			socket.emit(CHANGE_IMAGE, { userName:'', imagePreviewUrl: reader })
+			socket.emit(CHANGE_IMAGE, { userName: '', imagePreviewUrl: reader })
 		}
 
 		reader.readAsDataURL(file)
@@ -97,6 +99,10 @@ export default class SideBar extends Component {
 			this.props.setActiveChat(this.props.chats[index])
 		}
 	}
+	hideGuide=()=>{
+		document.getElementsByClassName("introjs-tooltip")[0].style.display='none'
+		localStorage.setItem('hideGuide',true)
+	}
 	setActiveSideBar = (type) => {
 		this.setState({ activeSideBar: type })
 	}
@@ -105,14 +111,12 @@ export default class SideBar extends Component {
 	}
 
 	closeOverlay = () => {
-		console.log('closed')
 		this.setState({ showOverlay: 'hide' })
 
-		
+
 
 	}
 	editImage = () => {
-		console.log('edit clicked')
 		document.getElementById('fileInput').click();
 	}
 	emptyFunc = () => {
@@ -122,7 +126,6 @@ export default class SideBar extends Component {
 	render() {
 
 		const { chats, activeChat, user, setActiveChat, logout, users } = this.props
-
 		const { reciever, activeSideBar, imagePreviewUrl } = this.state
 		let $imagePreview = null;
 		if (imagePreviewUrl) {
@@ -164,19 +167,20 @@ export default class SideBar extends Component {
 					{$imagePreview}
 					{/* <img className="user-avatar" onClick={this.onAvatarClicked} src={face1} /> */}
 				</div>
-				<form onSubmit={this.handleSubmit} className="search">
+				{/*<form onSubmit={this.handleSubmit} className="search">
 					<i className="search-icon">
 						<FASearch />
 					</i>
 					<input placeholder="Search" type="text" value={reciever} onChange={e => {
 						this.setState({ reciever: e.target.value });
 					}} />
-					{/* <div className="plus" onClick={() => { this.setActiveSideBar(SideBar.type.USERS) }}></div> */}
+					{/* <div className="plus" onClick={() => { this.setActiveSideBar(SideBar.type.USERS) }}></div> 
 				</form>
-				{/* <div className="app-name">
+					*/}
+					{user?<div className="app-name">
 					{user.name}
-					<FAChevronDown />
-				</div> */}
+					
+				</div>:''}
 			</div>
 
 			<div className="side-bar-select">
@@ -205,15 +209,19 @@ export default class SideBar extends Component {
 						this.addChatForUser(user.name);
 					}} handleDeleteChat={this.props.handleDeleteChat} />;
 				})}
+				{!this.state.hideGuide ? <div className="introjs-tooltip" >
+				<div className="user-guide" onClick={()=>this.hideGuide()}>X</div>
+				<div className="introjs-tooltiptext">Click here to open chat window
+            & Click users to see active users</div>
+						
+                <div className="introjs-progressbar" style={{width:'16.666666666666664%'}}>
+                </div><div className="introjs-arrow top" style={{display: 'inherit'}}></div>
+								
+                </div>:''}
 			</div>
 			<div className="current-user">
 				<span>Help</span>
-				<div onClick={() => {
-					logout();
-				}} title="Logout" className="logout">
-					Logout
-            {/* <MdEject /> */}
-				</div>
+				<Link className="logout" onClick={() => { logout() }} to="/login" >Logout</Link>
 			</div>
 		</div>;
 

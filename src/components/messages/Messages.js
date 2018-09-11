@@ -27,7 +27,7 @@ export default class Messages extends Component {
 				className="thread-container">
 				<div className="thread">
 					{
-						messages.map((mes)=>{
+						user && messages.map((mes)=>{
 							return (
 								<div
 									key={mes.id}
