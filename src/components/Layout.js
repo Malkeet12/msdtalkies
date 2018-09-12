@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import io from "socket.io-client";
 import { USER_CONNECTED, LOGOUT } from "../Events";
 import LoginForm from "./LoginForm";
+import RemindUsername from "./RemindUsername";
+import ResetPassword from "./ResetPassword";
 import ChatContainer from "./chats/ChatContainer";
 
 import SignUp from "./SignUp";
@@ -67,6 +69,8 @@ export default class Layout extends Component {
             <Route path="/login" render={(props) => <LoginForm socket={socket} setUser={this.setUser} />}  />
             <Route path="/signup" render={(props) => <SignUp socket={socket} setUser={this.setUser} />}  />
             <Route path="/chat" render={()=><ChatContainer socket={socket} user={user} logout={this.logout} />} />
+            <Route path="/resetUsernames" render={(props) => <RemindUsername socket={socket} setUser={this.setUser} />}  />
+            <Route path="/resetPassword" render={()=><ResetPassword socket={socket} user={user} logout={this.logout} />} />
           </div>
         </Router>
         {/* {

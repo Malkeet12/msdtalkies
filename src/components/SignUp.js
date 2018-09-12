@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { VERIFY_USER } from "../Events";
 import { Link } from "react-router-dom";
 import Header from './Header'
+import Footer from './common/Footer'
 import appLogo from '../images/app-logo.png'
 export default class LoginForm extends Component {
   constructor(props) {
@@ -110,7 +111,7 @@ export default class LoginForm extends Component {
 					</span>
             </p>
           </section>
-          <section id="login" className="login">
+          <section id="login" className="signup">
             {this.state.showLoader ? (
               <div className="loader-container" />
             ) : (
@@ -187,6 +188,7 @@ export default class LoginForm extends Component {
           </section>
           <div className="styles-altText"><span>Already have an account with us? <Link className="page-styles-link" to="/login">Log in</Link> instead.</span></div>
         </div >
+      <Footer />
       </div>
     );
   }
