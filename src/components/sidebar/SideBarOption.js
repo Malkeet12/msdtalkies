@@ -23,7 +23,12 @@ export default class SideBarOption extends PureComponent {
         onClock: () => { }
     }
     render() {
-        const { active, lastMessage, name, onClick, imagePreviewUrl, showDelete } = this.props
+        const { active, lastMessage, name, onClick, imagePreviewUrl, showDelete,userStatus,chatObj } = this.props
+        
+        let name1=name
+        if(name1=="Empty Chat" && chatObj){
+            name1=chatObj.name.split('&')[0]
+        }
         let $imagePreview = null;
         if (imagePreviewUrl) {
             $imagePreview = (<img className="user-avatar" src={imagePreviewUrl} />);
@@ -38,10 +43,11 @@ export default class SideBarOption extends PureComponent {
                 
                 <div className="user-photo">
                     {$imagePreview}
+                    <div className={userStatus?'user-status-on':'user-status-off'}></div>
                 </div>
 
                 <div className="user-info">
-                    <div className="name">{name}</div>
+                    <div className="name">{name1}</div>
                     <div className="last-message">{lastMessage}</div>
                 </div>
                 {/* {

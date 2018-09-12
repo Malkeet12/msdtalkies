@@ -77,8 +77,12 @@ const createChat = ({
 * @return {string} users names concatenated by a '&' or "Empty Chat" if no users
 */
 const createChatNameFromUsers = (users, excludedUser = "") => {
-  console.log(users, excludedUser)
-  return users.filter(u => u !== excludedUser).join(" & ") || "Empty Chat";
+  //console.log(users, excludedUser)
+  let uniqueArray=[]
+  uniqueArray = users.filter(function(item, pos) {
+    return users.indexOf(item) == pos;
+})
+  return uniqueArray.filter(u => u !== excludedUser).join(" & ") || "Empty Chat";
 };
 
 /*

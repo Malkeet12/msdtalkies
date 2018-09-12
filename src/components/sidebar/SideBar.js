@@ -37,7 +37,7 @@ export default class SideBar extends Component {
 			showOverlay: 'hide',
 			file: '',
 			imagePreviewUrl: '',
-			hideGuide:localStorage.getItem('hideGuide')
+			hideGuide: localStorage.getItem('hideGuide')
 		}
 		this.closeOverlay = this.closeOverlay.bind(this)
 		this.editImage = this.editImage.bind(this)
@@ -86,7 +86,6 @@ export default class SideBar extends Component {
 		reader.readAsDataURL(file)
 	}
 	addChatForUser = (reciever) => {
-
 		let index = this.props.chats.findIndex(chat => chat.users[0] === reciever);
 		if (index === -1) {
 			this.props.onSendPrivateMessage(reciever)
@@ -99,9 +98,9 @@ export default class SideBar extends Component {
 			this.props.setActiveChat(this.props.chats[index])
 		}
 	}
-	hideGuide=()=>{
-		document.getElementsByClassName("introjs-tooltip")[0].style.display='none'
-		localStorage.setItem('hideGuide',true)
+	hideGuide = () => {
+		document.getElementsByClassName("introjs-tooltip")[0].style.display = 'none'
+		localStorage.setItem('hideGuide', true)
 	}
 	setActiveSideBar = (type) => {
 		this.setState({ activeSideBar: type })
@@ -126,6 +125,8 @@ export default class SideBar extends Component {
 	render() {
 
 		const { chats, activeChat, user, setActiveChat, logout, users } = this.props
+		
+console.log({chats})
 		const { reciever, activeSideBar, imagePreviewUrl } = this.state
 		let $imagePreview = null;
 		if (imagePreviewUrl) {
@@ -177,10 +178,10 @@ export default class SideBar extends Component {
 					{/* <div className="plus" onClick={() => { this.setActiveSideBar(SideBar.type.USERS) }}></div> 
 				</form>
 					*/}
-					{user?<div className="app-name">
+				{user ? <div className="app-name">
 					{user.name}
-					
-				</div>:''}
+
+				</div> : ''}
 			</div>
 
 			<div className="side-bar-select">
@@ -198,26 +199,27 @@ export default class SideBar extends Component {
 			<div className="users" ref="users" onClick={e => {
 				e.target === this.refs.user && setActiveChat(e.target);
 			}}>
-				{activeSideBar === SideBar.type.CHATS ? chats.map(chat => {
-					return <SideBarOption key={chat.id} chats={chats} showDelete={chat} lastMessage={get(last(chat.messages), "message", "")}
+				{activeSideBar === SideBar.type.CHATS ? chats.map((chat, index) => {
+					return <SideBarOption key={chat.id} userStatus={chat.socketId == undefined ? false : true} chatObj={chats[index]} showDelete={chat} lastMessage={get(last(chat.messages), "message", "")}
 						name={chat.isCommunity ? chat.name : createChatNameFromUsers(chat.users, user.name)} active={activeChat.id === chat.id}
 						onClick={() => {
 							this.props.setActiveChat(chat);
 						}} handleDeleteChat={this.props.handleDeleteChat} />;
-				}) : differenceBy(users, [user], "name").map(user => {
-					return <SideBarOption key={user.id} name={user.name} onClick={() => {
-						this.addChatForUser(user.name);
-					}} handleDeleteChat={this.props.handleDeleteChat} />;
+				}) : differenceBy(users, [user], "name").map((user, index) => {
+					return <SideBarOption key={user.name} name={user.name}
+						userStatus={user.socketId == undefined ? false : true} onClick={() => {
+							this.addChatForUser(user.name);
+						}} handleDeleteChat={this.props.handleDeleteChat} />;
 				})}
 				{!this.state.hideGuide ? <div className="introjs-tooltip" >
-				<div className="user-guide" onClick={()=>this.hideGuide()}>X</div>
-				<div className="introjs-tooltiptext">Click here to open chat window
+					<div className="user-guide" onClick={() => this.hideGuide()}>X</div>
+					<div className="introjs-tooltiptext">Click here to open chat window
             & Click users to see active users</div>
-						
-                <div className="introjs-progressbar" style={{width:'16.666666666666664%'}}>
-                </div><div className="introjs-arrow top" style={{display: 'inherit'}}></div>
-								
-                </div>:''}
+
+					<div className="introjs-progressbar" style={{ width: '16.666666666666664%' }}>
+					</div><div className="introjs-arrow top" style={{ display: 'inherit' }}></div>
+
+				</div> : ''}
 			</div>
 			<div className="current-user">
 				<span>Help</span>

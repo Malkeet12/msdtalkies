@@ -7,6 +7,7 @@ body,
   height: 100%;
   background-color: #1D2733;
 }
+$theme-color:cadetblue;
 
 .default-styles {
   width: 100%;
@@ -121,7 +122,7 @@ textarea {
   flex-direction: column;
   justify-content: space-between;
   h2 {
-    color: cadetblue;
+    color: $theme-color;
     font-size: 20px;
     left: 18px;
     position: relative;
@@ -181,8 +182,9 @@ textarea {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    background: #4267b2;
+    justify-content: flex-start;
+    background: $theme-color;
+    border-bottom: 1px solid #29487d;
     .app-name {
       color: #f5f5f5;
     }
@@ -191,14 +193,14 @@ textarea {
     display: flex;
     display: flex;
     justify-content: center;
-    background: cadetblue;
+    background: $theme-color;
     justify-content: center;
     align-items: center;
   }
   .side-bar-users {
     height: 31px;
     width: 60px;
-    background: cornflowerblue;
+    background: #53d86a;
     color: #fff;
     border-radius: 0 18px 18px 0;
     &:hover {
@@ -222,7 +224,7 @@ textarea {
   .side-bar-select__option {
     height: 30px !important;
     float: left;
-    width: 60px;
+    width: 100%;
     height: 31px;
     height: 100%;
     display: flex;
@@ -324,6 +326,7 @@ input::placeholder {
       align-items: center;
       display: flex;
       height: 55px;
+      border-bottom: 1px solid beige;
       justify-content: flex-start;
       padding: 0 16px;
       &.active {
@@ -369,7 +372,7 @@ input::placeholder {
     align-items: center;
     box-sizing: border-box;
     display: flex;
-    background: #4267b2;
+    background: $theme-color;
     flex-direction: row;
     justify-content: space-between;
     padding-left: 16px;
@@ -390,7 +393,7 @@ input::placeholder {
 
 .chat-header {
   visibility: visible;
-  background: #4267b2;
+  background: $theme-color;
   border-bottom: 1px solid #29487d;
   color: #fff;
   box-shadow: 0px 6px 5px -2px rgba(225, 225, 225, 0.7);
@@ -537,13 +540,13 @@ input::placeholder {
       display: none;
     }
     .message {
-      background: #89a1fc;
+      background: $theme-color;
       color: #fff;
       border-top-right-radius: 0;
       border-top-left-radius: 5px;
       &::before {
-        border-top-color: #89a1fc;
-        border-left-color: #89a1fc;
+        border-top-color: $theme-color;
+        border-left-color: $theme-color;
         border-right-color: transparent;
         left: auto;
         right: -7px;
@@ -565,13 +568,13 @@ input::placeholder {
       display: none;
     }
     .message {
-      background: cadetblue;
+      background: steelblue;
       color: #fff;
       border-top-right-radius: 0;
       border-top-left-radius: 5px;
       &::before {
-        border-top-color: cadetblue;
-        border-left-color: cadetblue;
+        border-top-color: steelblue;
+        border-left-color: steelblue;
         border-right-color: transparent;
         left: auto;
         right: -7px;
@@ -631,6 +634,7 @@ input::placeholder {
     .send {
       width: 20%;
       min-width: 58px;
+      max-width: 80px;
       border-top-left-radius: 7px;
       box-sizing: border-box;
       font-size: 1.25em;
@@ -638,11 +642,11 @@ input::placeholder {
       border: none;
       height: 100%;
       color: #fff;
-      background: #4267b2;
+      background: $theme-color;
       transition: all 0.35s ease-out;
       &:disabled {
-        opacity: 0.2;
-        background: #4267b2;
+        opacity: 0.4;
+        background: $theme-color;
       }
     }
   }
@@ -1038,4 +1042,27 @@ input::placeholder {
   cursor: pointer;
   width: 20px;
   text-align: center;
+}
+.user-status{
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+  transition: background 167ms ease-in-out;
+  box-sizing: border-box;
+  animation: fade-in 167ms ease-in;
+  width: 11px;
+  height: 11px;
+  
+  bottom: 11px;
+  position: relative;
+  right: -27px;
+  box-shadow: 0 0 0 2px #fff;
+}
+.user-status-on{
+  @extend .user-status;
+  background: #469a1f;
+}
+.user-status-off{
+  @extend .user-status;
+  background: #e91b14;
 }

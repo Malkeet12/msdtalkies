@@ -11,7 +11,7 @@ let url = 'mongodb://msd:12malkeet@ds237192.mlab.com:37192/msdtalkies1'
 
 const MongoClient = require('mongodb').MongoClient
 let connectedUsers = {}
-let allUsers=[]
+let allUsers = []
 let communityChat = createChat({ isCommunity: true })
 
 module.exports = function (socket) {
@@ -53,14 +53,14 @@ module.exports = function (socket) {
 
 			if (err) throw err;
 			var dbo = db.db("msdtalkies1");
-		// console.log(socket.id)
-		// 	 dbo.collection("customers").find().toArray(function (err, result) {
-		// 	allUsers=result
-		// 	})
-		// 	allUsers.map(user=>{
-		// 		socket.emit(USER_CONNECTED, user);
-		// 	})
-			//console.log(allUsers)
+			console.log(socket.id)
+			dbo.collection("customers").find().toArray(function (err, result) {
+				allUsers = result
+			})
+			allUsers.map(user => {
+				socket.emit(USER_CONNECTED, user);
+			})
+			console.log(allUsers)
 			dbo.collection("customers").find({ 'name': nickname }).toArray(function (err, result) {
 				if (err) throw err;
 				console.log(result)
@@ -109,19 +109,16 @@ module.exports = function (socket) {
 
 	//User Connects with username
 	socket.on(USER_CONNECTED, (user) => {
-		user.socketId = socket.id
-		console.log('user')
-		//console.log(allUsers)
-		connectedUsers = addUser(connectedUsers, user)
-		socket.user = user
+		if (user) {
+			user.socketId = socket.id
+			connectedUsers = addUser(connectedUsers, user)
+			socket.user = user
 
-		sendMessageToChatFromUser = sendMessageToChat(user.name)
-		sendTypingFromUser = sendTypingToChat(user.name)
+			sendMessageToChatFromUser = sendMessageToChat(user.name)
+			sendTypingFromUser = sendTypingToChat(user.name)
 
-		io.emit(USER_CONNECTED, connectedUsers)
-		console.log('connectedUsers');
-		console.log(connectedUsers);
-		
+			io.emit(USER_CONNECTED, connectedUsers, allUsers)
+		}
 
 	})
 

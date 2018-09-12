@@ -13,7 +13,6 @@ import { values, difference, differenceBy } from 'lodash'
 export default class ChatContainer extends Component {
 	constructor(props) {
 		super(props);
-
 		this.state = {
 			chats: [],
 			users: [],
@@ -40,8 +39,21 @@ export default class ChatContainer extends Component {
 		socket.on('connect', () => {
 			socket.emit(COMMUNITY_CHAT, this.resetChat)
 		})
-		socket.on(USER_CONNECTED, (users) => {
-			this.setState({ users: values(users) })
+		socket.on(USER_CONNECTED, (users, allUsers) => {
+			
+			//this.setState({ users: allUsers })
+			let tempArr = allUsers.map(user => {
+				if (user && user.name && users[user.name] != undefined && users[user.name].socketId) {
+					user.socketId = users[user.name].socketId
+					return user
+				}else{
+					return user
+				}
+			})
+			if (tempArr.length > 0) {
+				this.setState({ users: tempArr })
+			}
+
 		})
 		socket.on(USER_DISCONNECTED, (users) => {
 			const removedUsers = differenceBy(this.state.users, values(users), 'id')
@@ -58,6 +70,7 @@ export default class ChatContainer extends Component {
 
 	}
 	addUserToChat = ({ chatId, newUser }) => {
+		console.log(chatId, newUser)
 		const { chats } = this.state
 		const newChats = chats.map(chat => {
 			if (chat.id === chatId) {
@@ -65,6 +78,8 @@ export default class ChatContainer extends Component {
 			}
 			return chat
 		})
+		// let index=this.state.users.findIndex(item=>item.name=newUser.name)
+		// newChats.socketId=this.state.users[index].socketId
 		this.setState({ chats: newChats })
 	}
 	removeUsersFromChat = removedUsers => {
@@ -129,7 +144,6 @@ export default class ChatContainer extends Component {
 		// this.setState({ showDeleteOption: !this.state.showDeleteOption, isOpen: !this.state.isOpen })
 		let updatedArr = this.state.chats.filter(chat => chat.id != showDelete.id);
 		this.setState({ chats: updatedArr })
-		console.log({ updatedArr })
 	}
 	toggleMenu = (showChat) => {
 		if (document.getElementsByClassName("introjs-tooltip")[0]) {
