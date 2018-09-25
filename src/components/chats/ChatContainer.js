@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import SideBar from '../sidebar/SideBar'
 import {
-	COMMUNITY_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED,
+	COMMUNITY_CHAT,FRIENDS_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED,
 	TYPING, PRIVATE_MESSAGE, USER_CONNECTED, USER_DISCONNECTED,
 	NEW_CHAT_USER
 } from '../../Events'
@@ -35,18 +35,21 @@ export default class ChatContainer extends Component {
 
 	initSocket(socket) {
 		socket.emit(COMMUNITY_CHAT, this.resetChat)
+		socket.emit(FRIENDS_CHAT, this.resetChat)
 		socket.on(PRIVATE_MESSAGE, this.addChat)
 		socket.on('connect', () => {
 			socket.emit(COMMUNITY_CHAT, this.resetChat)
-		})
-		socket.on(USER_CONNECTED, (users, allUsers) => {
+			socket.emit(FRIENDS_CHAT, this.resetChat)
 			
+		})
+		socket.on(USER_CONNECTED, (users, allUsers, socketId, user) => {
+			console.log({users})
 			//this.setState({ users: allUsers })
 			let tempArr = allUsers.map(user => {
 				if (user && user.name && users[user.name] != undefined && users[user.name].socketId) {
 					user.socketId = users[user.name].socketId
 					return user
-				}else{
+				} else {
 					return user
 				}
 			})
@@ -58,7 +61,7 @@ export default class ChatContainer extends Component {
 		socket.on(USER_DISCONNECTED, (users) => {
 			const removedUsers = differenceBy(this.state.users, values(users), 'id')
 			this.removeUsersFromChat(removedUsers)
-			this.setState({ users: values(users) })
+		//	this.setState({ users: values(users) })
 		})
 		socket.on(NEW_CHAT_USER, this.addUserToChat)
 	}
@@ -66,11 +69,15 @@ export default class ChatContainer extends Component {
 	sendOpenPrivateMessage = (reciever) => {
 		const { socket, user } = this.props
 		const { activeChat } = this.state
-		socket.emit(PRIVATE_MESSAGE, { reciever, sender: user.name, activeChat })
+		// if (user && user.id) {
+		// 	activeChat.id = user.id
+		// }
+
+		//console.log({ activeChat }, { user })
+		socket.emit(PRIVATE_MESSAGE, { reciever, sender: user, activeChat })
 
 	}
 	addUserToChat = ({ chatId, newUser }) => {
-		console.log(chatId, newUser)
 		const { chats } = this.state
 		const newChats = chats.map(chat => {
 			if (chat.id === chatId) {
@@ -88,7 +95,7 @@ export default class ChatContainer extends Component {
 			let newUsers = difference(chat.users, removedUsers.map(u => u.name))
 			return Object.assign({}, chat, { users: newUsers })
 		})
-		this.setState({ chats: newChats })
+	//	this.setState({ chats: newChats })
 	}
 
 	/*
@@ -96,7 +103,14 @@ export default class ChatContainer extends Component {
 	* 	@param chat {Chat}
 	*/
 	resetChat = (chat) => {
-		return this.addChat(chat, true)
+		if(Array.isArray(chat) ){
+			chat.map(item=>{
+				this.addChat(item, false);
+			})
+		}else if(chat!=null){
+			return this.addChat(chat, chat && chat.name=='Community'?true:false);
+	}
+
 	}
 
 	/*
@@ -143,7 +157,7 @@ export default class ChatContainer extends Component {
 	revealDeleteOptions = (showDelete) => {
 		// this.setState({ showDeleteOption: !this.state.showDeleteOption, isOpen: !this.state.isOpen })
 		let updatedArr = this.state.chats.filter(chat => chat.id != showDelete.id);
-		this.setState({ chats: updatedArr })
+	//	this.setState({ chats: updatedArr })
 	}
 	toggleMenu = (showChat) => {
 		if (document.getElementsByClassName("introjs-tooltip")[0]) {
@@ -160,24 +174,6 @@ export default class ChatContainer extends Component {
 				document.getElementById('side-bar').style.display = 'grid';
 			}
 		}
-		// if (document.getElementById('side-bar').offsetWidth === 0) {
-		// 	if(window.innerWidth>600){
-		// 		document.getElementById('side-bar').style.width = '50%';
-		// 		document.getElementById('chat-room-container').style.width = '50%';
-		// 	}else{
-		// 		document.getElementById('side-bar').style.width = '100%';
-		// 		document.getElementById('chat-room-container').style.width = '0%';
-		// 	}
-		// 	document.getElementById('menuHeading').style.visibility='hidden';
-		// 	document.getElementById('user-info').style.visibility='hidden';
-		// 	document.getElementById('heading').style.visibility='visible';
-		// } else {
-		// 	document.getElementById('side-bar').style.width = 0;
-		// 	document.getElementById('menuHeading').style.visibility='visible';
-		// 	document.getElementById('user-info').style.visibility='visible';
-		// 	document.getElementById('heading').style.visibility='hidden';
-		// 	document.getElementById('chat-room-container').style.width = '100%';
-		// }
 	}
 	/*
 	*	Updates the typing of chat with id passed in.
@@ -209,7 +205,7 @@ export default class ChatContainer extends Component {
 	*	@param chatId {number}  The id of the chat to be added to.
 	*	@param message {string} The message to be added to the chat.
 	*/
-	sendMessage = (chatId, message) => {
+	sendMessage = (chatId, message,user) => {
 		const { socket } = this.props
 		socket.emit(MESSAGE_SENT, { chatId, message })
 	}
@@ -231,6 +227,7 @@ export default class ChatContainer extends Component {
 	render() {
 		const { user, logout, socket } = this.props
 		const { chats, activeChat, users } = this.state
+		console.log(activeChat)
 		return (
 			<div className="chat-container">
 				<SideBar
@@ -252,7 +249,7 @@ export default class ChatContainer extends Component {
 							<div className="chat-room">
 								<ChatHeading handleClick={this.toggleMenu} />
 								<Messages
-									messages={activeChat.messages}
+									activeChat={activeChat}
 									user={user}
 									typingUsers={activeChat.typingUsers}
 								/>

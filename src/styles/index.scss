@@ -75,25 +75,25 @@ textarea {
     }
   }
 }
-
+.error-block {
+  width: 100%;
+  background-color: #F26C4F;
+  right: 0;
+  border-radius: 4px 4px 0 0;
+  padding: 1rem;
+  text-align: center;
+  color: #FFFFFF;
+}
+.success-block {
+  @extend .error-block;
+  background-color: darkgreen;
+}
 .login {
   width: 100%;
   height: 350px;
   overflow: hidden;
   border-radius: 0 4px 4px 0;
-  .error-block {
-    width: 100%;
-    background-color: #F26C4F;
-    right: 0;
-    border-radius: 4px 4px 0 0;
-    padding: 1rem;
-    text-align: center;
-    color: #FFFFFF;
-  }
-  .success-block {
-    @extend .error-block;
-    background-color: darkgreen;
-  }
+  
   .input-container {
     display: flex;
     align-items: center;
@@ -174,7 +174,7 @@ textarea {
   visibility: visible;
   display: grid;
   justify-content: stretch;
-  grid-template-rows: 8vh 5vh 1fr 8vh;
+  grid-template-rows: 8vh 0vh 1fr 8vh;
   .heading {
     position: relative;
     box-sizing: border-box;
@@ -182,11 +182,23 @@ textarea {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     background: $theme-color;
     border-bottom: 1px solid #29487d;
+    .user-details-container{
+      display: flex;
+    justify-content: center;
+    }
     .app-name {
-      color: #f5f5f5;
+      color: #fff;
+      display: flex;
+    align-items: center;
+    }
+    .add-user{
+      color: #fff;
+      font-size: 30px;
+      cursor: pointer;
+      padding: 0 10px;
     }
   }
   .side-bar-select {
@@ -381,7 +393,7 @@ input::placeholder {
       align-items: center;
       cursor: pointer;
       display: flex;
-      color: #f5f5f5;
+      color: #fff;
       width: 60px;
       justify-content: center;
       &:hover {
@@ -444,6 +456,7 @@ input::placeholder {
 }
 
 .chat-room {
+  position: relative;
   display: grid;
   grid-template: 8vh 1fr 8vh/100%;
   height: 100%;
@@ -456,6 +469,7 @@ input::placeholder {
 }
 
 .thread-container {
+  position: static !important;
   display: grid;
   flex-grow: 1;
   overflow-y: scroll;
@@ -472,7 +486,6 @@ input::placeholder {
     background-color: #484d79;
   }
   .thread {
-    position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -497,7 +510,8 @@ input::placeholder {
     margin-left: 25px;
   }
   .name {
-    font-size: 0.65em;
+    font-size: 16px;
+    color: darkgray;
     text-align: right;
   }
   .message {
@@ -508,7 +522,7 @@ input::placeholder {
     color: #408db9;
     font-size: 17px;
     height: 100%;
-    padding: 10px 15px;
+    padding: 7px 9px;
     position: relative;
   }
   .message::before {
@@ -564,9 +578,6 @@ input::placeholder {
       margin-left: 0;
       order: 1;
     }
-    .name {
-      display: none;
-    }
     .message {
       background: steelblue;
       color: #fff;
@@ -593,8 +604,14 @@ input::placeholder {
 }
 
 .typing-user {
+  color: #fff;
   text-align: right;
-  margin: 10px 15px;
+    margin: 10px 15px;
+    min-height: 30px;
+    position: absolute;
+    top: 8px;
+    z-index: 12121;
+    right: 9px;
 }
 
 .message-input {
@@ -635,6 +652,7 @@ input::placeholder {
       width: 20%;
       min-width: 58px;
       max-width: 80px;
+      max-width: 113px;
       border-top-left-radius: 7px;
       box-sizing: border-box;
       font-size: 1.25em;
@@ -1065,4 +1083,56 @@ input::placeholder {
 .user-status-off{
   @extend .user-status;
   background: #e91b14;
+}
+.container {
+  display : inline-block;
+  height : 500px;
+}
+
+#pane {
+  display : inline-block;
+  width : 10px;
+  height : 100%;
+  vertical-align : top;
+  color : #806000;
+  background-color : #b0d0c0;
+}
+      
+#panemover {
+  position:absolute;
+  left: 204px;
+  width : 10px;
+  height : 100%;
+  vertical-align : top;
+  opacity: 0;
+}
+
+.resbox {
+  display : inline-block;
+  width : 200px;
+  height : 100%;
+  background-color : #707070;
+}
+.overlay-add-user{
+  position: relative;
+    display: flex;
+    max-width: 750px;
+    min-height: 220px;
+    border-radius: 4px;
+    display: flex;
+    margin-top: 0;
+    background-color: #5f9ea0;
+    .container{
+      width: 100%;
+    padding: 20px 24px;
+    }
+    .input-container{
+      margin-top:15px;
+      margin-bottom: 10px; 
+    }
+    .add-user-form{
+      @extend .login-form;
+      height: auto;
+      min-height:100px;
+    }
 }

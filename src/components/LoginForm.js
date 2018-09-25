@@ -29,7 +29,6 @@ export default class LoginForm extends Component {
 		}
 	}
 	setUser = ({ user, allUsers, isUser, message }) => {
-		//console.log({ allUsers })
 		if (message && message != '' && message.error != '') {
 			this.setState({ showError: message.text });
 			this.setState({ showLoader: false });

@@ -10,11 +10,11 @@ import SideBarOption from './SideBarOption'
 import { last, get, differenceBy } from 'lodash'
 import { createChatNameFromUsers } from '../../Factories'
 import { Link } from "react-router-dom";
-import { PRIVATE_MESSAGE, CHANGE_IMAGE } from '../../Events'
+import { VERIFY_FRIEND, CHANGE_IMAGE } from '../../Events'
 import ImageUploader from 'react-images-upload'
 
 import face1 from '../../images/face1.jpeg'
-
+const uuidv4 = require('uuid/v4')
 const UserDetails = ({ className, iconImg, value = 0 }) => {
 	return (
 		<div className={'avatar-detail-item ' + className} data-layout="row" data-layout-align="start center">
@@ -33,9 +33,12 @@ export default class SideBar extends Component {
 		super(props)
 		this.state = {
 			reciever: "",
+			showError: '',
+			showSuccess: '',
 			activeSideBar: SideBar.type.CHATS,
 			showOverlay: 'hide',
 			file: '',
+			userEmail: '',
 			imagePreviewUrl: '',
 			hideGuide: localStorage.getItem('hideGuide')
 		}
@@ -87,9 +90,12 @@ export default class SideBar extends Component {
 	}
 	addChatForUser = (reciever) => {
 		let index = this.props.chats.findIndex(chat => chat.users[0] === reciever);
+		//console.log(this.props.chats, reciever)
 		if (index === -1) {
-			this.props.onSendPrivateMessage(reciever)
 			this.setActiveSideBar(SideBar.type.CHATS)
+			this.props.onSendPrivateMessage(reciever)
+
+
 		} else {
 			// const { socket, user } = this.props
 			// const { activeChat } = this.state
@@ -111,9 +117,6 @@ export default class SideBar extends Component {
 
 	closeOverlay = () => {
 		this.setState({ showOverlay: 'hide' })
-
-
-
 	}
 	editImage = () => {
 		document.getElementById('fileInput').click();
@@ -121,13 +124,36 @@ export default class SideBar extends Component {
 	emptyFunc = () => {
 
 	}
+	handleChange = e => {
+		this.setState({ userEmail: e.target.value });
+	};
+	showAddUserOverlay = (e) => {
+		this.setState({ showOverlayAddUser: 'show' })
+	}
+	closeOverlayAddUser = (e) => {
+		this.setState({ showOverlayAddUser: 'hide' })
+		this.setState({ showSuccess: '',showSuccess:'' });
+	}
+
+	verifyUser = () => {
+		const { socket } = this.props;
+		const { userEmail } = this.state;
+		socket.emit(VERIFY_FRIEND, userEmail, this.addUser);
+	}
+	addUser = (res) => {
+		if (res == null) {
+			this.setState({ showError: 'No account is linked with this email id' });
+			this.setState({ showSuccess: '' });
+		} else {
+			this.setState({ showSuccess: 'Friend Request sent successfully' });
+			this.setState({ showError: '' });
+		}
+	}
 
 	render() {
 
 		const { chats, activeChat, user, setActiveChat, logout, users } = this.props
-		
-console.log({chats})
-		const { reciever, activeSideBar, imagePreviewUrl } = this.state
+		const { reciever, activeSideBar, imagePreviewUrl, userEmail, showError, showSuccess } = this.state
 		let $imagePreview = null;
 		if (imagePreviewUrl) {
 			$imagePreview = (<img className="user-avatar" src={imagePreviewUrl} />);
@@ -159,6 +185,49 @@ console.log({chats})
 					</div>
 				</div>
 			</div>
+
+			<div className={`overlay-container ${this.state.showOverlayAddUser}`} >
+				<div className="overlay" onClick={e => this.emptyFunc(e)} />
+				<div className="avatar-home overlay-add-user" data-layout="column" data-layout-align="center center">
+					<i className="material-icons close" onClick={this.closeOverlayAddUser} >x</i>
+					<div className="container" onClick={this.onEditAvatarClicked}>
+
+
+						<div className="add-user-form">
+							{showError ? <div className="error-block">{showError}</div> : ""}
+							{showSuccess ? <div className="success-block">{showSuccess}</div> : ""}
+							<div className="input-container">
+								<input
+									ref={input => {
+										this.textInput = input;
+									}}
+									type="text"
+									id="userEmail"
+									autoComplete={"off"}
+									value={userEmail}
+									style={{ color: 'white' }}
+									onChange={this.handleChange}
+									placeholder={"JohnDoe@msdtalkies.com"}
+								/>
+							</div>
+							<button onClick={this.verifyUser}
+									className={this.state.nickname == "" || this.state.password == "" ? 'disabled-button' : "submit-btn"}
+								>
+									SEND REQUEST
+                </button>
+							<div>
+								
+							</div>
+						</div>
+
+
+
+
+
+
+					</div>
+				</div>
+			</div>
 			<div id="heading" className="heading">
 				{/* <div onClick={() => { this.props.handleClick() }} className="menu">
 					<FAMenu />
@@ -167,7 +236,13 @@ console.log({chats})
 					<div className="avatar-ripple" />
 					{$imagePreview}
 					{/* <img className="user-avatar" onClick={this.onAvatarClicked} src={face1} /> */}
+					{user ? <div className="app-name">
+						{user.name}
+
+					</div > : ''}
 				</div>
+				<div className="app-name">Chats</div>
+				<span className="add-user" onClick={(e) => this.showAddUserOverlay(e)} >+</span>
 				{/*<form onSubmit={this.handleSubmit} className="search">
 					<i className="search-icon">
 						<FASearch />
@@ -178,10 +253,7 @@ console.log({chats})
 					{/* <div className="plus" onClick={() => { this.setActiveSideBar(SideBar.type.USERS) }}></div> 
 				</form>
 					*/}
-				{user ? <div className="app-name">
-					{user.name}
 
-				</div> : ''}
 			</div>
 
 			<div className="side-bar-select">
@@ -200,13 +272,16 @@ console.log({chats})
 				e.target === this.refs.user && setActiveChat(e.target);
 			}}>
 				{activeSideBar === SideBar.type.CHATS ? chats.map((chat, index) => {
-					return <SideBarOption key={chat.id} userStatus={chat.socketId == undefined ? false : true} chatObj={chats[index]} showDelete={chat} lastMessage={get(last(chat.messages), "message", "")}
-						name={chat.isCommunity ? chat.name : createChatNameFromUsers(chat.users, user.name)} active={activeChat.id === chat.id}
-						onClick={() => {
-							this.props.setActiveChat(chat);
-						}} handleDeleteChat={this.props.handleDeleteChat} />;
+					if (chat != null) {
+						return <SideBarOption key={uuidv4()} userStatus={chat.socketId == undefined ? false : true} chatObj={chats[index]} showDelete={chat} lastMessage={get(last(chat.messages), "message", "")}
+							name={chat.isCommunity ? chat.name : createChatNameFromUsers(chat.users, user.name)}
+							active={activeChat.id === chat.id}
+							onClick={() => {
+								this.props.setActiveChat(chat);
+							}} handleDeleteChat={this.props.handleDeleteChat} />;
+					}
 				}) : differenceBy(users, [user], "name").map((user, index) => {
-					return <SideBarOption key={user.name} name={user.name}
+					return <SideBarOption key={uuidv4()} name={user.name}
 						userStatus={user.socketId == undefined ? false : true} onClick={() => {
 							this.addChatForUser(user.name);
 						}} handleDeleteChat={this.props.handleDeleteChat} />;
@@ -223,7 +298,7 @@ console.log({chats})
 			</div>
 			<div className="current-user">
 				<span>Help</span>
-				<Link className="logout" onClick={() => { logout() }} to="/login" >Logout</Link>
+				<Link className="logout" onClick={() => { this.props.logout() }} to="/login" >Logout</Link>
 			</div>
 		</div>;
 

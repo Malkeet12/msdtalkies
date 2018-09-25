@@ -24,7 +24,7 @@ export default class SideBarOption extends PureComponent {
     }
     render() {
         const { active, lastMessage, name, onClick, imagePreviewUrl, showDelete,userStatus,chatObj } = this.props
-        
+        console.log(userStatus)
         let name1=name
         if(name1=="Empty Chat" && chatObj){
             name1=chatObj.name.split('&')[0]

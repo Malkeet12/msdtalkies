@@ -2,8 +2,8 @@ const io = require('./index.js').io
 const uuidv4 = require('uuid/v4')
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED,
-	LOGOUT, COMMUNITY_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-	TYPING, PRIVATE_MESSAGE, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
+	LOGOUT, COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
+	TYPING, PRIVATE_MESSAGE, VERIFY_FRIEND, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 let url = 'mongodb://msd:12malkeet@ds237192.mlab.com:37192/msdtalkies1'
@@ -12,8 +12,8 @@ let url = 'mongodb://msd:12malkeet@ds237192.mlab.com:37192/msdtalkies1'
 const MongoClient = require('mongodb').MongoClient
 let connectedUsers = {}
 let allUsers = []
-let communityChat = createChat({ isCommunity: true })
-
+let communityChat = createChat({ name: 'Community', isCommunity: true })
+console.log({ communityChat })
 module.exports = function (socket) {
 
 	// console.log('\x1bc'); //clears console
@@ -22,7 +22,7 @@ module.exports = function (socket) {
 	let sendMessageToChatFromUser;
 
 	let sendTypingFromUser;
-
+	let friendsChat = []
 
 
 	// socket.on(VERIFY_USER, (nickName, number, callback) => {
@@ -48,35 +48,70 @@ module.exports = function (socket) {
 	// }
 	//})
 
+
+
 	socket.on(LOGIN_USER, (nickname, password, callback) => {
+		setTimeout(() => callback({ isUser: true, user: null, message: { text: 'Please check your connection and try again', error: true } }), 15000)
 		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
 
-			if (err) throw err;
+			if (err) {
+				callback({ isUser: true, user: null, message: { text: 'Please check your connection and try again', error: true } })
+				throw err
+			}
 			var dbo = db.db("msdtalkies1");
-			console.log(socket.id)
 			dbo.collection("customers").find().toArray(function (err, result) {
 				allUsers = result
+				//console.log({allUsers})
 			})
+
 			allUsers.map(user => {
 				socket.emit(USER_CONNECTED, user);
 			})
-			console.log(allUsers)
 			dbo.collection("customers").find({ 'name': nickname }).toArray(function (err, result) {
 				if (err) throw err;
-				console.log(result)
-				let index = result.findIndex(item => item.name == nickname)
-				if (index == -1) {
+
+				let arr = result[0].friendsList
+
+				if (result[0].name !== nickname) {
 					callback({ isUser: true, user: null, message: { text: 'Invalid username', error: true } })
 				} else {
-					if (password == result[index].password) {
-						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id }), error: '' })
+					{
+						friendsChat=[]
+						if (Array.isArray(arr))
+							arr.map(item => {
+								friendsChat.push(createChat({ isCommunity: false, id: item.chatId, name: item.name,messages:item.messages
+								 }))
+							})
+					}
+					if (password == result[0].password) {
+						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id, chatId: result[0].id }), error: '' })
 					} else {
 						callback({ isUser: true, user: null, message: { text: 'Invalid username / password pair', error: true } })
 					}
 				}
 				db.close();
 			});
+
 		})
+	})
+
+	socket.on(VERIFY_FRIEND, (email, callback) => {
+		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+
+			if (err) throw err;
+			var dbo = db.db("msdtalkies1");
+			dbo.collection("customers").find({ 'email': email }).toArray(function (err, result) {
+				if (err) throw err;
+				let index = result.findIndex(item => item.email == email)
+				if (result[index] != null) {
+					dbo.collection("customers").update(
+						{ email: email },
+						{ $inc: { friendsList: [{ name: 'jj' }] } }
+					)
+				}
+				callback(result[index])
+		})
+	})
 	})
 	//Verify Username
 	socket.on(VERIFY_USER, (nickname, email, password, callback) => {
@@ -87,7 +122,6 @@ module.exports = function (socket) {
 			var myobj = { name: nickname, email: email, password: password };
 			dbo.collection("customers").find({ 'name': nickname }).toArray(function (err, result) {
 				if (err) throw err;
-				console.log(result)
 				let index = result.findIndex(item => item.name == nickname)
 				if (index !== -1) {
 					callback({ isUser: true, user: null, message: { text: `User name is already taken, try again or choose from : ${nickname}${uuidv4().slice(0, 2)}, ${nickname}${uuidv4().slice(0, 2)}, ${nickname}${uuidv4().slice(0, 2)}`, error: true } })
@@ -108,16 +142,21 @@ module.exports = function (socket) {
 	})
 
 	//User Connects with username
-	socket.on(USER_CONNECTED, (user) => {
-		if (user) {
-			user.socketId = socket.id
+	socket.on(USER_CONNECTED, (user, socketId) => {
+		if (user && socket) {
+			//user.socketId = socket.id
+			// if (socketId) {
+			// 	user.socketId = socketId
+			// 	socket.id=socketId
+			// }
+			//	console.log('socket', user)
 			connectedUsers = addUser(connectedUsers, user)
 			socket.user = user
-
-			sendMessageToChatFromUser = sendMessageToChat(user.name)
+			console.log(user)
+			sendMessageToChatFromUser = sendMessageToChat(user.name, user.id)
 			sendTypingFromUser = sendTypingToChat(user.name)
 
-			io.emit(USER_CONNECTED, connectedUsers, allUsers)
+			io.emit(USER_CONNECTED, connectedUsers, allUsers, socket.id, user)
 		}
 
 	})
@@ -126,7 +165,7 @@ module.exports = function (socket) {
 	socket.on('disconnect', () => {
 		if ("user" in socket) {
 			connectedUsers = removeUser(connectedUsers, socket.user.name)
-
+console.log('disc',socket.user)
 			io.emit(USER_DISCONNECTED, connectedUsers)
 			console.log("Disconnect", connectedUsers);
 		}
@@ -148,10 +187,16 @@ module.exports = function (socket) {
 	socket.on(COMMUNITY_CHAT, (callback) => {
 		callback(communityChat)
 	})
-
+	socket.on(FRIENDS_CHAT, (callback) => {
+		callback(friendsChat);
+	})
 	socket.on(MESSAGE_SENT, ({ chatId, message }) => {
-		if (typeof sendMessageToChatFromUser == 'function')
+		
+		if (typeof sendMessageToChatFromUser == 'function') {
+		
 			sendMessageToChatFromUser(chatId, message)
+		}
+
 	})
 
 	socket.on(TYPING, ({ chatId, isTyping }) => {
@@ -160,25 +205,27 @@ module.exports = function (socket) {
 	})
 
 	socket.on(PRIVATE_MESSAGE, ({ reciever, sender, activeChat }) => {
-		console.log({ reciever }, { sender }, { activeChat }, { connectedUsers })
+		console.log(reciever,activeChat,user,connectedUsers)
 		if (reciever in connectedUsers) {
-			const recieverSocket = connectedUsers[reciever].socketId
+			const recieverSocket = 'connectedUsers[reciever].socketId'
 			if (activeChat === null || activeChat.id === communityChat.id) {
-				const newChat = createChat({ name: `${reciever}&${sender}`, users: [reciever, sender] })
+				const newChat = createChat({ name: `${reciever}&${sender.name}`, users: [reciever, sender.name], chatId: '' })
 				socket.to(recieverSocket).emit(PRIVATE_MESSAGE, newChat)
 				socket.emit(PRIVATE_MESSAGE, newChat)
 			} else {
-				if (!(reciever in activeChat.users)) {
-					activeChat.users
-						.filter(user => user in connectedUsers)
-						.map(user => connectedUsers[user])
-						.map(user => {
-							socket.to(user.socketId).emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
-						})
-					socket.emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
-				}
-				socket.to(recieverSocket).emit(PRIVATE_MESSAGE, activeChat)
+				// if (!(reciever in activeChat.users)) {
+				// 	activeChat.users
+				// 		.filter(user => user in connectedUsers)
+				// 		.map(user => connectedUsers[user])
+				// 		.map(user => {
+				// 			socket.to(user.socketId).emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
+				// 		})
+				// 	socket.emit(NEW_CHAT_USER, { chatId: activeChat.id, newUser: reciever })
+				// }
+				// socket.to(recieverSocket).emit(PRIVATE_MESSAGE, activeChat)
 			}
+		}else{
+			console.log(reciever,activeChat,user)
 		}
 	})
 
@@ -201,9 +248,10 @@ function sendTypingToChat(user) {
 * @param sender {string} username of sender
 * @return function(chatId, message)
 */
-function sendMessageToChat(sender) {
+function sendMessageToChat(sender, id) {
+	console.log(sender,id)
 	return (chatId, message) => {
-		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({ message, sender }))
+		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({ message, sender, id }))
 	}
 }
 

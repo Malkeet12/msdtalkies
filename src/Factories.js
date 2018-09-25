@@ -13,9 +13,10 @@ const createUser = ({
   number = "",
   socketId = null,
   otp = "",
-  imgUrl = ""
+  imgUrl = "",
+  chatId=""
 } = {}) => ({
-  id: uuidv4(),
+  id: chatId|| uuidv4(),
   name,
   number,
   socketId,
@@ -34,9 +35,9 @@ const createUser = ({
 *		message {string}
 *		sender {string}
 */
-const createMessage = ({ message = "", sender = "" } = {}) => ({
-  id: uuidv4(),
-  time: getTime(new Date(Date.now() - 23400000)),
+const createMessage = ({ message = "", sender = "", id="" } = {}) => ({
+  //id: uuidv4(),
+  time: getTime(new Date(Date.now() - 20808000)),
   message,
   sender
 });
@@ -60,12 +61,15 @@ const createChat = ({
   messages = [],
   name = "Community",
   users = [],
-  isCommunity = false
+  id="",
+  online=false,
+  isCommunity = false,
 } = {}) => ({
-  id: uuidv4(),
-  name: isCommunity ? name : createChatNameFromUsers(users),
+  id: id || uuidv4(),
+  name: name ? name : createChatNameFromUsers(users),
   messages,
   users,
+  online,
   typingUsers: [],
   isCommunity
 });
@@ -77,8 +81,11 @@ const createChat = ({
 * @return {string} users names concatenated by a '&' or "Empty Chat" if no users
 */
 const createChatNameFromUsers = (users, excludedUser = "") => {
-  //console.log(users, excludedUser)
+  //console.log({users}, {excludedUser})
   let uniqueArray=[]
+  if(!users){
+    return excludedUser
+  }
   uniqueArray = users.filter(function(item, pos) {
     return users.indexOf(item) == pos;
 })
