@@ -1,11 +1,6 @@
 import React, { Component } from 'react';
 // import { FormattedMessage, injectIntl } from 'react-intl'
 //import TextField from 'material-ui/TextField'
-import FAChevronDown from 'react-icons/lib/md/keyboard-arrow-down'
-import FAMenu from 'react-icons/lib/fa/list-ul'
-import FASearch from 'react-icons/lib/fa/search'
-import If from '../common/If'
-import MdEject from 'react-icons/lib/md/eject'
 import SideBarOption from './SideBarOption'
 import { last, get, differenceBy } from 'lodash'
 import { createChatNameFromUsers } from '../../Factories'
@@ -132,13 +127,19 @@ export default class SideBar extends Component {
 	}
 	closeOverlayAddUser = (e) => {
 		this.setState({ showOverlayAddUser: 'hide' })
-		this.setState({ showSuccess: '',showSuccess:'' });
+		this.setState({ showSuccess: '', showSuccess: '' });
 	}
 
-	verifyUser = () => {
-		const { socket } = this.props;
+	verifyUser = (user) => {
+		const { socket, chats } = this.props;
 		const { userEmail } = this.state;
-		socket.emit(VERIFY_FRIEND, userEmail, this.addUser);
+		let index = chats.findIndex(chat => chat.email == userEmail)
+		if (index == -1) {
+			socket.emit(VERIFY_FRIEND, user.name, user.id, userEmail, this.addUser);
+		} else {
+			this.setState({ showError: 'User linked with this email id is already in friendlist' });
+			this.setState({ showSuccess: '' });
+		}
 	}
 	addUser = (res) => {
 		if (res == null) {
@@ -210,13 +211,13 @@ export default class SideBar extends Component {
 									placeholder={"JohnDoe@msdtalkies.com"}
 								/>
 							</div>
-							<button onClick={this.verifyUser}
-									className={this.state.nickname == "" || this.state.password == "" ? 'disabled-button' : "submit-btn"}
-								>
-									SEND REQUEST
+							<button onClick={() => this.verifyUser(user)}
+								className={this.state.nickname == "" || this.state.password == "" ? 'disabled-button' : "submit-btn"}
+							>
+								SEND REQUEST
                 </button>
 							<div>
-								
+
 							</div>
 						</div>
 

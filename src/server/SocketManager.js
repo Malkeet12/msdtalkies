@@ -3,7 +3,7 @@ const uuidv4 = require('uuid/v4')
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED,
 	LOGOUT, COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-	TYPING, PRIVATE_MESSAGE, VERIFY_FRIEND, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
+	TYPING, PRIVATE_MESSAGE, REQUEST_SENT, VERIFY_FRIEND, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 let url = 'mongodb://msd:12malkeet@ds237192.mlab.com:37192/msdtalkies1'
@@ -79,8 +79,9 @@ module.exports = function (socket) {
 						friendsChat=[]
 						if (Array.isArray(arr))
 							arr.map(item => {
-								friendsChat.push(createChat({ isCommunity: false, id: item.chatId, name: item.name,messages:item.messages
-								 }))
+								friendsChat.push(createChat({
+									isCommunity: false, id: item.chatId, name: item.name, messages: item.messages, friendRequest: item.friendRequest,email:item.email
+								}))
 							})
 					}
 					if (password == result[0].password) {
@@ -95,7 +96,7 @@ module.exports = function (socket) {
 		})
 	})
 
-	socket.on(VERIFY_FRIEND, (email, callback) => {
+	socket.on(VERIFY_FRIEND, (userName, userId, email, callback) => {
 		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
 
 			if (err) throw err;
@@ -103,15 +104,61 @@ module.exports = function (socket) {
 			dbo.collection("customers").find({ 'email': email }).toArray(function (err, result) {
 				if (err) throw err;
 				let index = result.findIndex(item => item.email == email)
+				console.log({ userName })
 				if (result[index] != null) {
-					dbo.collection("customers").update(
+					dbo.collection("customers").updateOne(
+						{ name: userName },
+						{ $push: { friendsList: { $each: [{ id: result[index].id, name: result[index].name, chatId: '', friendRequest: 'sender',email:result[index].email }] } } }
+					)
+					dbo.collection("customers").updateOne(
 						{ email: email },
-						{ $inc: { friendsList: [{ name: 'jj' }] } }
+						{ $push: { friendsList: { $each: [{ id: userId, name: userName, chatId: '', friendRequest: 'receiver',email:email }] } } }
 					)
 				}
 				callback(result[index])
+			})
 		})
 	})
+
+
+	socket.on(REQUEST_SENT, (flag, user, chat, callback) => {
+		if (flag == true) {
+			MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+				if (err) throw err;
+				var dbo = db.db("msdtalkies1");
+				let success = 0
+				let chatId = uuidv4()
+				dbo.collection("customers").find({ 'name': chat.name }).toArray(function (err, result) {
+					console.log('yess', result[0])
+					if (result[0] != null) {
+						// request accepted by user
+						dbo.collection("customers").updateOne(
+							{ name: chat.name, "friendsList.name": user },
+							{ $set: { "friendsList.$.friendRequest": true, "friendsList.$.chatId": chatId } },
+							function (err, result) {
+								if (err) throw err;
+								console.log(result);
+								success = success + 1;
+							})
+
+						//accepting request 
+						dbo.collection("customers").updateOne(
+							{ name: user, "friendsList.name": chat.name },
+							{ $set: { "friendsList.$.friendRequest": true, "friendsList.$.chatId": chatId } },
+							function (err, result) {
+								if (err) throw err;
+								console.log(result);
+								callback(true)
+							})
+
+					} 
+					
+				
+
+				})
+			})
+		}
+
 	})
 	//Verify Username
 	socket.on(VERIFY_USER, (nickname, email, password, callback) => {
@@ -119,7 +166,7 @@ module.exports = function (socket) {
 
 			if (err) throw err;
 			var dbo = db.db("msdtalkies1");
-			var myobj = { name: nickname, email: email, password: password };
+			var myobj = { name: nickname, email: email, password: password, id: uuidv4(), friendsList: [] };
 			dbo.collection("customers").find({ 'name': nickname }).toArray(function (err, result) {
 				if (err) throw err;
 				let index = result.findIndex(item => item.name == nickname)

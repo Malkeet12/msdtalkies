@@ -1136,3 +1136,11 @@ input::placeholder {
       min-height:100px;
     }
 }
+.friend-request {
+  display: flex;
+  justify-content: center;
+  .request {
+    width: 50%;
+    margin: 8px;
+  }
+}

@@ -219,7 +219,14 @@ export default class ChatContainer extends Component {
 		const { socket } = this.props
 		socket.emit(TYPING, { chatId, isTyping })
 	}
-
+	handler=(e)=> {
+		e.preventDefault()
+		console.log('user')
+    // this.setState({
+    //   request: 'accepted'
+    // })
+	}
+	
 	setActiveChat = (activeChat) => {
 		this.toggleMenu(true)
 		this.setState({ activeChat })
@@ -249,6 +256,7 @@ export default class ChatContainer extends Component {
 							<div className="chat-room">
 								<ChatHeading handleClick={this.toggleMenu} />
 								<Messages
+								socket={socket}
 									activeChat={activeChat}
 									user={user}
 									typingUsers={activeChat.typingUsers}

@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
+import Request from '../common/Request'
+
 const uuidv4 = require('uuid/v4')
+
+
 export default class Messages extends Component {
 	constructor(props) {
 		super(props);
@@ -19,17 +23,23 @@ export default class Messages extends Component {
 	componentDidUpdate(prevProps, prevState) {
 		this.scrollDown()
 	}
+	acceptRequest = () => {
+		console.log('acc')
+	}
+	
 
 	render() {
-		const { activeChat, user, typingUsers } = this.props
+		const { activeChat, user, typingUsers, socket } = this.props
 		let messages = activeChat.messages
-		console.log(messages)
+		console.log({user},{activeChat})
 		return (
 			<div ref='container'
 				className="thread-container">
 				<div className="thread">
+					{activeChat.friendRequest == 'receiver' ? <Request user={user} handler={this.props.handler} activeChat={activeChat} socket={socket} sender={false} /> : ''}
+					{activeChat.friendRequest == 'sender' ? <Request user={user} handler={this.props.handler} activeChat={activeChat} socket={socket} sender={true} /> : ''}
 					{
-						user && messages && messages.map((mes) => {
+						user && messages && (activeChat.friendRequest == true || !activeChat.friendRequest) && messages.map((mes) => {
 							return (
 								<div
 									key={uuidv4()}
