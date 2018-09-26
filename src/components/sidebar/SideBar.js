@@ -276,7 +276,7 @@ export default class SideBar extends Component {
 					if (chat != null) {
 						return <SideBarOption key={uuidv4()} userStatus={chat.socketId == undefined ? false : true} chatObj={chats[index]} showDelete={chat} lastMessage={get(last(chat.messages), "message", "")}
 							name={chat.isCommunity ? chat.name : createChatNameFromUsers(chat.users, user.name)}
-							active={activeChat.id === chat.id}
+							active={activeChat.id === chat.id} userStatus={chat.online}
 							onClick={() => {
 								this.props.setActiveChat(chat);
 							}} handleDeleteChat={this.props.handleDeleteChat} />;

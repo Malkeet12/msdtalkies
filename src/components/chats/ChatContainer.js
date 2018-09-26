@@ -57,10 +57,33 @@ export default class ChatContainer extends Component {
 				this.setState({ users: tempArr })
 			}
 
+			let arr = this.state.chats.map(chat => {
+				if (users[chat.name]) {
+					chat.online = true
+					return chat
+				} else {
+					return chat
+				}
+
+			})
+			
+			this.setState({ chats: arr })
+
 		})
 		socket.on(USER_DISCONNECTED, (users) => {
 			const removedUsers = differenceBy(this.state.users, values(users), 'id')
 			this.removeUsersFromChat(removedUsers)
+			let arr = this.state.chats.map(chat => {
+				if (users[chat.name]) {
+					chat.online = true
+					return chat
+				} else {
+					return chat
+				}
+
+			})
+			this.setState({ chats: arr })
+
 			//	this.setState({ users: values(users) })
 		})
 		socket.on(NEW_CHAT_USER, this.addUserToChat)
@@ -124,13 +147,13 @@ export default class ChatContainer extends Component {
 	addChat = (chat, reset = false) => {
 		const { socket, user } = this.props
 		const { chats } = this.state
-		let getMesString=''
-		if(user&&chat){
+		let getMesString = ''
+		if (user && chat) {
 			getMesString = user.name + '-messages-' + chat.name
 		}
-		 
+
 		if (localStorage.getItem(getMesString)) {
-			chat.messages=JSON.parse(localStorage.getItem(getMesString))
+			chat.messages = JSON.parse(localStorage.getItem(getMesString))
 		}
 		const newChats = reset ? [chat] : [...chats, chat]
 		this.setState({ chats: newChats, activeChat: reset ? chat : this.state.activeChat })
@@ -216,7 +239,7 @@ export default class ChatContainer extends Component {
 		const { socket } = this.props
 		let { id } = chat
 		console.log({ user }, { message })
-		
+
 		socket.emit(MESSAGE_SENT, { id, message, user })
 	}
 
@@ -246,7 +269,7 @@ export default class ChatContainer extends Component {
 		const { chats, activeChat, users } = this.state
 		console.log(activeChat)
 		return (
-			<div className="chat-container">
+			<div className="chat-container" >
 				<SideBar
 					logout={logout}
 					chats={chats}

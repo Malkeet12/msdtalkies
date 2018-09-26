@@ -13,6 +13,7 @@ const createUser = ({
   number = "",
   socketId = null,
   otp = "",
+  online=false,
   imgUrl = "",
   chatId=""
 } = {}) => ({
@@ -20,6 +21,7 @@ const createUser = ({
   name,
   number,
   socketId,
+  online,
   otp,
   imgUrl
 });
@@ -63,17 +65,17 @@ const createChat = ({
   users = [],
   id="",
   email='',
-  friendRequest='',
   online=false,
+  friendRequest='',
   isCommunity = false,
 } = {}) => ({
   id: id || uuidv4(),
   name: name ? name : createChatNameFromUsers(users),
   messages,
   email,
+  online,
   friendRequest,
   users,
-  online,
   typingUsers: [],
   isCommunity
 });

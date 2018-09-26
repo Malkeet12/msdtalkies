@@ -13,6 +13,7 @@ const MongoClient = require('mongodb').MongoClient
 let connectedUsers = {}
 let allUsers = []
 let communityChat = createChat({ name: 'Community', isCommunity: true })
+communityChat.online = true
 console.log({ communityChat })
 module.exports = function (socket) {
 
@@ -76,16 +77,16 @@ module.exports = function (socket) {
 					callback({ isUser: true, user: null, message: { text: 'Invalid username', error: true } })
 				} else {
 					{
-						friendsChat=[]
+						friendsChat = []
 						if (Array.isArray(arr))
 							arr.map(item => {
 								friendsChat.push(createChat({
-									isCommunity: false, id: item.chatId, name: item.name, messages: item.messages, friendRequest: item.friendRequest,email:item.email
+									isCommunity: false, id: item.chatId, name: item.name, messages: item.messages, friendRequest: item.friendRequest, email: item.email,online:item.online
 								}))
 							})
 					}
 					if (password == result[0].password) {
-						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id, chatId: result[0].id }), error: '' })
+						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id, chatId: result[0].id, online: true }), error: '' })
 					} else {
 						callback({ isUser: true, user: null, message: { text: 'Invalid username / password pair', error: true } })
 					}
@@ -108,11 +109,11 @@ module.exports = function (socket) {
 				if (result[index] != null) {
 					dbo.collection("customers").updateOne(
 						{ name: userName },
-						{ $push: { friendsList: { $each: [{ id: result[index].id, name: result[index].name, chatId: '', friendRequest: 'sender',email:result[index].email }] } } }
+						{ $push: { friendsList: { $each: [{ id: result[index].id, name: result[index].name, chatId: '', friendRequest: 'sender', email: result[index].email }] } } }
 					)
 					dbo.collection("customers").updateOne(
 						{ email: email },
-						{ $push: { friendsList: { $each: [{ id: userId, name: userName, chatId: '', friendRequest: 'receiver',email:email }] } } }
+						{ $push: { friendsList: { $each: [{ id: userId, name: userName, chatId: '', friendRequest: 'receiver', email: email }] } } }
 					)
 				}
 				callback(result[index])
@@ -151,9 +152,9 @@ module.exports = function (socket) {
 								callback(true)
 							})
 
-					} 
-					
-				
+					}
+
+
 
 				})
 			})
@@ -212,7 +213,7 @@ module.exports = function (socket) {
 	socket.on('disconnect', () => {
 		if ("user" in socket) {
 			connectedUsers = removeUser(connectedUsers, socket.user.name)
-console.log('disc',socket.user)
+			console.log('disc', socket.user)
 			io.emit(USER_DISCONNECTED, connectedUsers)
 			console.log("Disconnect", connectedUsers);
 		}
@@ -237,10 +238,10 @@ console.log('disc',socket.user)
 	socket.on(FRIENDS_CHAT, (callback) => {
 		callback(friendsChat);
 	})
-	socket.on(MESSAGE_SENT, ({ id, message,user }) => {
-		console.log({message},{id})
+	socket.on(MESSAGE_SENT, ({ id, message, user }) => {
+		console.log({ message }, { id })
 		if (typeof sendMessageToChatFromUser == 'function') {
-		
+
 			sendMessageToChatFromUser(id, message)
 		}
 
@@ -252,7 +253,7 @@ console.log('disc',socket.user)
 	})
 
 	socket.on(PRIVATE_MESSAGE, ({ reciever, sender, activeChat }) => {
-		console.log(reciever,activeChat,user,connectedUsers)
+		console.log(reciever, activeChat, user, connectedUsers)
 		if (reciever in connectedUsers) {
 			const recieverSocket = 'connectedUsers[reciever].socketId'
 			if (activeChat === null || activeChat.id === communityChat.id) {
@@ -271,8 +272,8 @@ console.log('disc',socket.user)
 				// }
 				// socket.to(recieverSocket).emit(PRIVATE_MESSAGE, activeChat)
 			}
-		}else{
-			console.log(reciever,activeChat,user)
+		} else {
+			console.log(reciever, activeChat, user)
 		}
 	})
 
@@ -296,7 +297,7 @@ function sendTypingToChat(user) {
 * @return function(chatId, message)
 */
 function sendMessageToChat(sender, id) {
-	console.log(sender,id)
+	console.log(sender, id)
 	return (chatId, message) => {
 		io.emit(`${MESSAGE_RECIEVED}-${chatId}`, createMessage({ message, sender, id }))
 	}
