@@ -66,18 +66,23 @@ export default class ChatContainer extends Component {
 				}
 
 			})
-			
+
 			this.setState({ chats: arr })
 
 		})
 		socket.on(USER_DISCONNECTED, (users) => {
 			const removedUsers = differenceBy(this.state.users, values(users), 'id')
 			this.removeUsersFromChat(removedUsers)
+			
 			let arr = this.state.chats.map(chat => {
 				if (users[chat.name]) {
 					chat.online = true
 					return chat
 				} else {
+					if (chat.name != 'Community') {
+						chat.online = false
+					}
+
 					return chat
 				}
 
