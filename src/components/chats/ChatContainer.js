@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import SideBar from '../sidebar/SideBar'
 import {
-	COMMUNITY_CHAT,FRIENDS_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED,
+	COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED,
 	TYPING, PRIVATE_MESSAGE, USER_CONNECTED, USER_DISCONNECTED,
 	NEW_CHAT_USER
 } from '../../Events'
@@ -40,10 +40,10 @@ export default class ChatContainer extends Component {
 		socket.on('connect', () => {
 			socket.emit(COMMUNITY_CHAT, this.resetChat)
 			socket.emit(FRIENDS_CHAT, this.resetChat)
-			
+
 		})
 		socket.on(USER_CONNECTED, (users, allUsers, socketId, user) => {
-			console.log({users})
+			console.log({ users })
 			//this.setState({ users: allUsers })
 			let tempArr = allUsers.map(user => {
 				if (user && user.name && users[user.name] != undefined && users[user.name].socketId) {
@@ -61,7 +61,7 @@ export default class ChatContainer extends Component {
 		socket.on(USER_DISCONNECTED, (users) => {
 			const removedUsers = differenceBy(this.state.users, values(users), 'id')
 			this.removeUsersFromChat(removedUsers)
-		//	this.setState({ users: values(users) })
+			//	this.setState({ users: values(users) })
 		})
 		socket.on(NEW_CHAT_USER, this.addUserToChat)
 	}
@@ -95,7 +95,7 @@ export default class ChatContainer extends Component {
 			let newUsers = difference(chat.users, removedUsers.map(u => u.name))
 			return Object.assign({}, chat, { users: newUsers })
 		})
-	//	this.setState({ chats: newChats })
+		//	this.setState({ chats: newChats })
 	}
 
 	/*
@@ -103,13 +103,13 @@ export default class ChatContainer extends Component {
 	* 	@param chat {Chat}
 	*/
 	resetChat = (chat) => {
-		if(Array.isArray(chat) ){
-			chat.map(item=>{
+		if (Array.isArray(chat)) {
+			chat.map(item => {
 				this.addChat(item, false);
 			})
-		}else if(chat!=null){
-			return this.addChat(chat, chat && chat.name=='Community'?true:false);
-	}
+		} else if (chat != null) {
+			return this.addChat(chat, chat && chat.name == 'Community' ? true : false);
+		}
 
 	}
 
@@ -122,9 +122,16 @@ export default class ChatContainer extends Component {
 	*	@param reset {boolean} if true will set the chat as the only chat.
 	*/
 	addChat = (chat, reset = false) => {
-		const { socket } = this.props
+		const { socket, user } = this.props
 		const { chats } = this.state
-
+		let getMesString=''
+		if(user&&chat){
+			getMesString = user.name + '-messages-' + chat.name
+		}
+		 
+		if (localStorage.getItem(getMesString)) {
+			chat.messages=JSON.parse(localStorage.getItem(getMesString))
+		}
 		const newChats = reset ? [chat] : [...chats, chat]
 		this.setState({ chats: newChats, activeChat: reset ? chat : this.state.activeChat })
 
@@ -157,7 +164,7 @@ export default class ChatContainer extends Component {
 	revealDeleteOptions = (showDelete) => {
 		// this.setState({ showDeleteOption: !this.state.showDeleteOption, isOpen: !this.state.isOpen })
 		let updatedArr = this.state.chats.filter(chat => chat.id != showDelete.id);
-	//	this.setState({ chats: updatedArr })
+		//	this.setState({ chats: updatedArr })
 	}
 	toggleMenu = (showChat) => {
 		if (document.getElementsByClassName("introjs-tooltip")[0]) {
@@ -205,9 +212,12 @@ export default class ChatContainer extends Component {
 	*	@param chatId {number}  The id of the chat to be added to.
 	*	@param message {string} The message to be added to the chat.
 	*/
-	sendMessage = (chatId, message,user) => {
+	sendMessage = (chat, message, user) => {
 		const { socket } = this.props
-		socket.emit(MESSAGE_SENT, { chatId, message })
+		let { id } = chat
+		console.log({ user }, { message })
+		
+		socket.emit(MESSAGE_SENT, { id, message, user })
 	}
 
 	/*
@@ -219,14 +229,14 @@ export default class ChatContainer extends Component {
 		const { socket } = this.props
 		socket.emit(TYPING, { chatId, isTyping })
 	}
-	handler=(e)=> {
+	handler = (e) => {
 		e.preventDefault()
 		console.log('user')
-    // this.setState({
-    //   request: 'accepted'
-    // })
+		// this.setState({
+		//   request: 'accepted'
+		// })
 	}
-	
+
 	setActiveChat = (activeChat) => {
 		this.toggleMenu(true)
 		this.setState({ activeChat })
@@ -256,7 +266,7 @@ export default class ChatContainer extends Component {
 							<div className="chat-room">
 								<ChatHeading handleClick={this.toggleMenu} />
 								<Messages
-								socket={socket}
+									socket={socket}
 									activeChat={activeChat}
 									user={user}
 									typingUsers={activeChat.typingUsers}
@@ -264,7 +274,7 @@ export default class ChatContainer extends Component {
 								<MessageInput
 									sendMessage={
 										(message) => {
-											this.sendMessage(activeChat.id, message)
+											this.sendMessage(activeChat, message, user)
 										}
 									}
 									sendTyping={

@@ -30,7 +30,12 @@ export default class Messages extends Component {
 
 	render() {
 		const { activeChat, user, typingUsers, socket } = this.props
-		let messages = activeChat.messages
+		let messages=[]
+		if(activeChat && user){
+			messages = activeChat.messages
+			localStorage.setItem(user.name + '-messages-' + activeChat.name, JSON.stringify(activeChat.messages))
+		}
+		
 		console.log({user},{activeChat})
 		return (
 			<div ref='container'

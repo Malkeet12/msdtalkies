@@ -237,11 +237,11 @@ console.log('disc',socket.user)
 	socket.on(FRIENDS_CHAT, (callback) => {
 		callback(friendsChat);
 	})
-	socket.on(MESSAGE_SENT, ({ chatId, message }) => {
-		
+	socket.on(MESSAGE_SENT, ({ id, message,user }) => {
+		console.log({message},{id})
 		if (typeof sendMessageToChatFromUser == 'function') {
 		
-			sendMessageToChatFromUser(chatId, message)
+			sendMessageToChatFromUser(id, message)
 		}
 
 	})
