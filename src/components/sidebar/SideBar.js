@@ -5,7 +5,7 @@ import SideBarOption from './SideBarOption'
 import { last, get, differenceBy } from 'lodash'
 import { createChatNameFromUsers } from '../../Factories'
 import { Link } from "react-router-dom";
-import { VERIFY_FRIEND, CHANGE_IMAGE } from '../../Events'
+import { VERIFY_FRIEND, UPDATE_FRIEND_LIST, CHANGE_IMAGE } from '../../Events'
 import ImageUploader from 'react-images-upload'
 
 import face1 from '../../images/face1.jpeg'
@@ -30,12 +30,12 @@ export default class SideBar extends Component {
 			reciever: "",
 			showError: '',
 			showSuccess: '',
+			showLoader: false,
 			activeSideBar: SideBar.type.CHATS,
 			showOverlay: 'hide',
 			file: '',
 			userEmail: '',
-			imagePreviewUrl: '',
-			hideGuide: localStorage.getItem('hideGuide')
+			imagePreviewUrl: ''
 		}
 		this.closeOverlay = this.closeOverlay.bind(this)
 		this.editImage = this.editImage.bind(this)
@@ -99,10 +99,6 @@ export default class SideBar extends Component {
 			this.props.setActiveChat(this.props.chats[index])
 		}
 	}
-	hideGuide = () => {
-		document.getElementsByClassName("introjs-tooltip")[0].style.display = 'none'
-		localStorage.setItem('hideGuide', true)
-	}
 	setActiveSideBar = (type) => {
 		this.setState({ activeSideBar: type })
 	}
@@ -131,26 +127,41 @@ export default class SideBar extends Component {
 	}
 
 	verifyUser = (user) => {
-		const { socket, chats } = this.props;
+		const { socket, chats, activeChat } = this.props;
 		const { userEmail } = this.state;
+		this.setState({ showLoader: true });
 		let index = chats.findIndex(chat => chat.email == userEmail)
 		if (index == -1) {
-			socket.emit(VERIFY_FRIEND, user.name, user.id, userEmail, this.addUser);
+			socket.emit(VERIFY_FRIEND, user.name,user.email, user.id, userEmail, this.addUser);
+			setTimeout(() => {
+				socket.emit(UPDATE_FRIEND_LIST, user.name, activeChat.name, this.props.resetChat)
+			},2000)
 		} else {
 			this.setState({ showError: 'User linked with this email id is already in friendlist' });
-			this.setState({ showSuccess: '' });
+
+			this.clearMessage('showError')
 		}
 	}
 	addUser = (res) => {
 		if (res == null) {
 			this.setState({ showError: 'No account is linked with this email id' });
-			this.setState({ showSuccess: '' });
+			this.clearMessage('showError')
+
 		} else {
 			this.setState({ showSuccess: 'Friend Request sent successfully' });
-			this.setState({ showError: '' });
+			this.clearMessage('showSuccess')
 		}
 	}
 
+	clearMessage = (type) => {
+		var newState = {};
+		newState[type] = '';
+		this.setState({ showLoader: false });
+		setTimeout(() => {
+			this.setState(newState);
+			//this.setState({ userEmail: '' })
+		}, 3000)
+	}
 	render() {
 
 		const { chats, activeChat, user, setActiveChat, logout, users } = this.props
@@ -197,7 +208,9 @@ export default class SideBar extends Component {
 						<div className="add-user-form">
 							{showError ? <div className="error-block">{showError}</div> : ""}
 							{showSuccess ? <div className="success-block">{showSuccess}</div> : ""}
-							<div className="input-container">
+							{this.state.showLoader ? (
+								<div style={{ marginBottom: '25px' }} className="loader-container" ></div>
+							) : (<div><div className="input-container">
 								<input
 									ref={input => {
 										this.textInput = input;
@@ -211,14 +224,13 @@ export default class SideBar extends Component {
 									placeholder={"JohnDoe@msdtalkies.com"}
 								/>
 							</div>
-							<button onClick={() => this.verifyUser(user)}
-								className={this.state.nickname == "" || this.state.password == "" ? 'disabled-button' : "submit-btn"}
-							>
-								SEND REQUEST
+								<button onClick={() => this.verifyUser(user)}
+									className={this.state.nickname == "" || this.state.password == "" ? 'disabled-button' : "submit-btn"}
+								>
+									SEND REQUEST
                 </button>
-							<div>
-
-							</div>
+							</div>)
+							}
 						</div>
 
 
@@ -287,15 +299,6 @@ export default class SideBar extends Component {
 							this.addChatForUser(user.name);
 						}} handleDeleteChat={this.props.handleDeleteChat} />;
 				})}
-				{!this.state.hideGuide ? <div className="introjs-tooltip" >
-					<div className="user-guide" onClick={() => this.hideGuide()}>X</div>
-					<div className="introjs-tooltiptext">Click here to open chat window
-            & Click users to see active users</div>
-
-					<div className="introjs-progressbar" style={{ width: '16.666666666666664%' }}>
-					</div><div className="introjs-arrow top" style={{ display: 'inherit' }}></div>
-
-				</div> : ''}
 			</div>
 			<div className="current-user">
 				<span>Help</span>

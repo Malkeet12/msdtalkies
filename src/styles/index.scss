@@ -76,7 +76,8 @@ textarea {
   }
 }
 .error-block {
-  width: 85%;
+  text-align: center;
+  width: 100%;
   background-color: #F26C4F;
   right: 0;
   border-radius: 4px 4px 0 0;
@@ -840,7 +841,6 @@ input::placeholder {
   justify-content: center;
   display: flex;
   padding-top: 10px;
-  height: 232px;
   z-index: 1212121212;
   margin: 0 auto;
   align-items: flex-start;
@@ -1086,7 +1086,6 @@ input::placeholder {
 }
 .container {
   display : inline-block;
-  height : 500px;
 }
 
 #pane {
@@ -1117,7 +1116,6 @@ input::placeholder {
   position: relative;
     display: flex;
     max-width: 750px;
-    min-height: 220px;
     border-radius: 4px;
     display: flex;
     margin-top: 0;

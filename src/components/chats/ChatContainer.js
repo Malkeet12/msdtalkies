@@ -286,6 +286,7 @@ export default class ChatContainer extends Component {
 					logout={logout}
 					chats={chats}
 					user={user}
+					resetChat={this.resetChat}
 					users={users}
 					activeChat={activeChat}
 					socket={socket}
