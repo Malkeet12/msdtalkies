@@ -27,6 +27,7 @@ export default class MessageInput extends Component {
 		e.preventDefault()
 		this.setState({ showEmojiPicker: false })
 		this.sendMessage()
+		document.getElementById("message").focus();
 		this.setState({ message: "" })
 	}
 

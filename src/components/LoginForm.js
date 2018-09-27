@@ -28,10 +28,19 @@ export default class LoginForm extends Component {
 			return <Redirect to='/chat' />
 		}
 	}
+
+	clearMessage = (type) => {
+		var newState = {};
+		newState[type] = '';
+		this.setState({ showLoader: false });
+		setTimeout(() => {
+			this.setState(newState);
+		}, 3000)
+	}
 	setUser = ({ user, allUsers, isUser, message }) => {
 		if (message && message != '' && message.error != '') {
 			this.setState({ showError: message.text });
-			this.setState({ showLoader: false });
+			this.clearMessage('showError')
 		} else {
 			this.setState({
 				redirect: true

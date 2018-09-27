@@ -130,7 +130,7 @@ export default class ChatContainer extends Component {
 	*	Reset the chat back to only the chat passed in.
 	* 	@param chat {Chat}
 	*/
-	resetChat = (chat,friendName, reset) => {
+	resetChat = (chat, friendName, reset) => {
 		if (reset) {
 			let chatsArr = this.state.chats.splice(0, 1)
 			this.setState({ chats: chatsArr })
@@ -194,9 +194,9 @@ export default class ChatContainer extends Component {
 	}
 
 	revealDeleteOptions = (showDelete) => {
-		// this.setState({ showDeleteOption: !this.state.showDeleteOption, isOpen: !this.state.isOpen })
-		let updatedArr = this.state.chats.filter(chat => chat.id != showDelete.id);
-		//	this.setState({ chats: updatedArr })
+		//  this.setState({ showDeleteOption: !this.state.showDeleteOption, isOpen: !this.state.isOpen })
+		// let updatedArr = this.state.chats.filter(chat => chat.id != showDelete.id);
+		// 	this.setState({ chats: updatedArr })
 	}
 	toggleMenu = (showChat) => {
 		if (document.getElementsByClassName("introjs-tooltip")[0]) {
@@ -271,6 +271,18 @@ export default class ChatContainer extends Component {
 		//   request: 'accepted'
 		// })
 	}
+	clearChat = (name) => {
+		this.state.chats.map(chat => {
+			if (chat.name == name) {
+				chat.messages = []
+			}
+		})
+	}
+	deleteChat = (name) => {
+		let x= this.state.chats.filter(chat =>chat.name!=name);
+		console.log({x})
+		this.setState({chats:x})
+	}
 
 	setActiveChat = (activeChat) => {
 		this.toggleMenu(true)
@@ -286,8 +298,11 @@ export default class ChatContainer extends Component {
 					logout={logout}
 					chats={chats}
 					user={user}
+					resetChat={this.resetChat}
 					users={users}
+					clearChat={this.clearChat}
 					activeChat={activeChat}
+					deleteChat={this.deleteChat}
 					socket={socket}
 					setActiveChat={this.setActiveChat}
 					onSendPrivateMessage={this.sendOpenPrivateMessage}
