@@ -17,6 +17,7 @@ export default class Request extends Component {
 
     if (accepted) {
       this.setState({ message: 'Please login again to talk to this user (will fix in next release) ' })
+      this.props.requestAccepted()
     }
   }
   ignoreRequest = () => {
@@ -24,7 +25,7 @@ export default class Request extends Component {
   }
 
   render() {
-    const { socket, activeChat, user, sender } = this.props;
+    const { socket, activeChat, user, sender,requestAccepted } = this.props;
     console.log(sender)
     return (
       <div>

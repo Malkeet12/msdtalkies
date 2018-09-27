@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import SideBar from '../sidebar/SideBar'
 import {
-	COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_SENT, MESSAGE_RECIEVED,
+	COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_SENT, MESSAGE_SENT_OFFLINE, MESSAGE_RECIEVED,
 	TYPING, PRIVATE_MESSAGE, USER_CONNECTED, USER_DISCONNECTED,
 	NEW_CHAT_USER
 } from '../../Events'
@@ -73,7 +73,7 @@ export default class ChatContainer extends Component {
 		socket.on(USER_DISCONNECTED, (users) => {
 			const removedUsers = differenceBy(this.state.users, values(users), 'id')
 			this.removeUsersFromChat(removedUsers)
-			
+
 			let arr = this.state.chats.map(chat => {
 				if (users[chat.name]) {
 					chat.online = true
@@ -130,10 +130,17 @@ export default class ChatContainer extends Component {
 	*	Reset the chat back to only the chat passed in.
 	* 	@param chat {Chat}
 	*/
-	resetChat = (chat) => {
+	resetChat = (chat,friendName, reset) => {
+		if (reset) {
+			let chatsArr = this.state.chats.splice(0, 1)
+			this.setState({ chats: chatsArr })
+		}
 		if (Array.isArray(chat)) {
-			chat.map(item => {
+			chat.map((item) => {
 				this.addChat(item, false);
+				if (item.name == friendName) {
+					this.setActiveChat(item)
+				}
 			})
 		} else if (chat != null) {
 			return this.addChat(chat, chat && chat.name == 'Community' ? true : false);
@@ -157,16 +164,13 @@ export default class ChatContainer extends Component {
 			getMesString = user.name + '-messages-' + chat.name
 		}
 
-		if (localStorage.getItem(getMesString)) {
-			chat.messages = JSON.parse(localStorage.getItem(getMesString))
-		}
 		const newChats = reset ? [chat] : [...chats, chat]
 		this.setState({ chats: newChats, activeChat: reset ? chat : this.state.activeChat })
 
 		const messageEvent = `${MESSAGE_RECIEVED}-${chat.id}`
 		const typingEvent = `${TYPING}-${chat.id}`
 
-		socket.on(typingEvent, this.updateTypingInChat(chat.id))
+		//socket.on(typingEvent, this.updateTypingInChat(chat.id))
 		socket.on(messageEvent, this.addMessageToChat(chat.id))
 	}
 
@@ -244,8 +248,11 @@ export default class ChatContainer extends Component {
 		const { socket } = this.props
 		let { id } = chat
 		console.log({ user }, { message })
-
+		let date = new Date();
+		let timeString = date.getHours() + ':' + date.getMinutes()
+		socket.emit(MESSAGE_SENT_OFFLINE, chat.name, message, timeString, user.name)
 		socket.emit(MESSAGE_SENT, { id, message, user })
+
 	}
 
 	/*
@@ -295,6 +302,8 @@ export default class ChatContainer extends Component {
 								<ChatHeading handleClick={this.toggleMenu} />
 								<Messages
 									socket={socket}
+									setActiveChat={this.setActiveChat}
+									resetChat={this.resetChat}
 									activeChat={activeChat}
 									user={user}
 									typingUsers={activeChat.typingUsers}

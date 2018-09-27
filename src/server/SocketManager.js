@@ -2,8 +2,8 @@ const io = require('./index.js').io
 const uuidv4 = require('uuid/v4')
 
 const { VERIFY_USER, USER_CONNECTED, USER_DISCONNECTED,
-	LOGOUT, COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT,
-	TYPING, PRIVATE_MESSAGE, REQUEST_SENT, VERIFY_FRIEND, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
+	LOGOUT, COMMUNITY_CHAT, FRIENDS_CHAT, MESSAGE_RECIEVED, MESSAGE_SENT, MESSAGE_SENT_OFFLINE,
+	TYPING, PRIVATE_MESSAGE, REQUEST_SENT, UPDATE_FRIEND_LIST, VERIFY_FRIEND, LOGIN_USER, NEW_CHAT_USER, CHANGE_IMAGE } = require('../Events')
 
 const { createUser, createMessage, createChat } = require('../Factories')
 let url = 'mongodb://msd:12malkeet@ds237192.mlab.com:37192/msdtalkies1'
@@ -81,10 +81,11 @@ module.exports = function (socket) {
 						if (Array.isArray(arr))
 							arr.map(item => {
 								friendsChat.push(createChat({
-									isCommunity: false, id: item.chatId, name: item.name, messages: item.messages, friendRequest: item.friendRequest, email: item.email,online:item.online
+									isCommunity: false, id: item.chatId, name: item.name, messages: item.messages, friendRequest: item.friendRequest, email: item.email, online: item.online
 								}))
 							})
 					}
+					console.log({ friendsChat })
 					if (password == result[0].password) {
 						callback({ isUser: false, user: createUser({ name: nickname, imgUrl: '', socketId: socket.id, chatId: result[0].id, online: true }), error: '' })
 					} else {
@@ -105,7 +106,7 @@ module.exports = function (socket) {
 			dbo.collection("customers").find({ 'email': email }).toArray(function (err, result) {
 				if (err) throw err;
 				let index = result.findIndex(item => item.email == email)
-				console.log({ userName })
+				console.log({ result })
 				if (result[index] != null) {
 					dbo.collection("customers").updateOne(
 						{ name: userName },
@@ -127,7 +128,6 @@ module.exports = function (socket) {
 			MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
 				if (err) throw err;
 				var dbo = db.db("msdtalkies1");
-				let success = 0
 				let chatId = uuidv4()
 				dbo.collection("customers").find({ 'name': chat.name }).toArray(function (err, result) {
 					console.log('yess', result[0])
@@ -138,8 +138,7 @@ module.exports = function (socket) {
 							{ $set: { "friendsList.$.friendRequest": true, "friendsList.$.chatId": chatId } },
 							function (err, result) {
 								if (err) throw err;
-								console.log(result);
-								success = success + 1;
+
 							})
 
 						//accepting request 
@@ -148,7 +147,6 @@ module.exports = function (socket) {
 							{ $set: { "friendsList.$.friendRequest": true, "friendsList.$.chatId": chatId } },
 							function (err, result) {
 								if (err) throw err;
-								console.log(result);
 								callback(true)
 							})
 
@@ -238,12 +236,68 @@ module.exports = function (socket) {
 	socket.on(FRIENDS_CHAT, (callback) => {
 		callback(friendsChat);
 	})
+	socket.on(UPDATE_FRIEND_LIST, (userName,friendName, callback) => {
+
+		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+
+			if (err) {
+				throw err
+			}
+			var dbo = db.db("msdtalkies1");
+			let friendsList = []
+			dbo.collection("customers").find({ 'name': userName }).toArray(function (err, result) {
+				if (err) throw err;
+
+				let arr = result[0].friendsList
+				if (Array.isArray(arr))
+					arr.map(item => {
+						friendsList.push(createChat({
+							isCommunity: false, id: item.chatId, name: item.name, messages: item.messages, friendRequest: item.friendRequest, email: item.email, online: item.online
+						}))
+					})
+				let friendsArr = friendsList.map(chat => {
+					if (connectedUsers[chat.name]) {
+						chat.online = true
+						return chat
+					} else {
+						return chat
+					}
+
+				})
+				callback(friendsArr,friendName, true)
+				console.log({ friendsList })
+			})
+		})
+	})
 	socket.on(MESSAGE_SENT, ({ id, message, user }) => {
 		console.log({ message }, { id })
 		if (typeof sendMessageToChatFromUser == 'function') {
 
 			sendMessageToChatFromUser(id, message)
 		}
+
+	})
+	socket.on(MESSAGE_SENT_OFFLINE, (reciever, message, time, sender) => {
+		console.log({ reciever }, { message }, { sender })
+		MongoClient.connect(url, { useNewUrlParser: true }, function (err, db) {
+
+			if (err) throw err;
+			var dbo = db.db("msdtalkies1");
+			dbo.collection("customers").updateOne(
+				{ name: reciever, "friendsList.name": sender },
+				{ $push: { "friendsList.$.messages": { $each: [{ time: time, sender: sender, message: message }] } } },
+				function (err, result) {
+					if (err) throw err;
+					console.log(result);
+				})
+			dbo.collection("customers").updateOne(
+				{ name: sender, "friendsList.name": reciever },
+				{ $push: { "friendsList.$.messages": { $each: [{ time: time, sender: sender, message: message }] } } },
+				function (err, result) {
+					if (err) throw err;
+					console.log(result);
+				})
+		})
 
 	})
 
