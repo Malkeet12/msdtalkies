@@ -121,7 +121,7 @@ export default class MessageInput extends Component {
 						type="submit"
 						className="send"
 
-					> Send </button>
+					> <span className="glyphicon glyphicon-share-alt"></span> </button>
 				</form>
 
 			</div>

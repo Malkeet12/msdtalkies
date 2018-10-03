@@ -48,9 +48,12 @@ export default class Messages extends Component {
                       user.name && "right"} ${mes.sender !== user.name &&
                       "left"}`}
                   >
-                    <div className="time">{mes.time}</div>
+                    
                     <div className="data">
-                      <div className="message">{mes.message}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }} className="message">{mes.message}
+											<div className="time">{mes.time}</div>
+											</div>
+											
                       {activeChat.isCommunity ? (
                         <div className="name">{mes.sender}</div>
                       ) : (
